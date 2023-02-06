@@ -1,34 +1,3 @@
-Skip to content
-Search or jump to…
-Pull requests
-Issues
-Codespaces
-Marketplace
-Explore
- 
-@Charles201428 
-Charles201428
-/
-assignments-for-csf
-Public
-Fork your own copy of Charles201428/assignments-for-csf
-Code
-Issues
-Pull requests
-Actions
-Projects
-Wiki
-Security
-Insights
-Settings
-assignments-for-csf/csf_assign01/uint256.c
-@Grizzliessss
-Grizzliessss Update uint256.c
-Latest commit 2d43004 16 hours ago
- History
- 1 contributor
-211 lines (188 sloc)  5.07 KB
-
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -199,8 +168,64 @@ UInt256 uint256_create_from_hex(const char *hex) {
 // Return a dynamically-allocated string of hex digits representing the
 // given UInt256 value.
 char *uint256_format_as_hex(UInt256 val) {
-  char *hex = NULL;
-  // TODO: implement
+  char *hex = malloc(sizeof(char)*70);
+  hex[0] = '\0';
+  uint64_t data0 = val.data[0];
+  uint64_t data1 = val.data[1];
+  uint64_t data2 = val.data[2];
+  uint64_t data3 = val.data[3];
+  //if the head uint64 is nonzero
+  if (data3 != 0){
+    char *last = malloc(sizeof(char)*17);
+    last[0] = '\0';
+    sprintf(last, "%lx", data3);
+    strcat(hex, last);
+    free(last);
+    for (int i = 2; i > -1; i--){
+      char *buf = malloc(sizeof(char)*17);
+      buf[0] = '\0';
+      sprintf(buf, "%016lx", val.data[i]);
+      strcat(hex, buf);
+      free(buf);
+    }
+
+  }
+  else if(data2 != 0){
+    char *last = malloc(sizeof(char)*17);
+    last[0] = '\0';
+    sprintf(last, "%lx", data2);
+    strcat(hex, last);
+    free(last);
+    for (int i = 1; i > -1; i--){
+      char *buf = malloc(sizeof(char)*17);
+      buf[0] = '\0';
+      sprintf(buf, "%016lx", val.data[i]);
+      strcat(hex, buf);
+      free(buf);
+    }
+  }
+  else if(data1 !=0){
+    char *last = malloc(sizeof(char)*17);
+    last[0] = '\0';
+    sprintf(last, "%lx", data1);
+    strcat(hex, last);
+    free(last);
+    for (int i = 0; i > -1; i--){
+      char *buf = malloc(sizeof(char)*17);
+      buf[0] = '\0';
+      sprintf(buf, "%016lx", val.data[i]);
+      strcat(hex, buf);
+      free(buf);
+    }
+  }
+  else{
+    char *only = malloc(sizeof(char)*17);
+    only[0] = '\0';
+    sprintf(only, "%lx", data0);
+    strcat(hex, only);
+    free(only);
+  }
+
   return hex;
 }
 
@@ -215,9 +240,20 @@ uint64_t uint256_get_bits(UInt256 val, unsigned index) {
 
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
-  UInt256 sum;
-  // TODO: implement
-  return sum;
+ UInt256 sum;
+  // TODO: implement
+ int carry = 0;
+ for (int i = 0; i<4; ++i){
+ uint64_t temp = left.data[i] + right.data[i] + carry;
+ sum.data[i] = temp;
+ if (temp < left.data[i] || temp < right.data[i]){
+ carry = 1;
+ }
+ else{
+  carry = 0;
+  }
+ }
+ return sum;
 }
 
 // Compute the difference of two UInt256 values.
@@ -240,18 +276,3 @@ UInt256 uint256_mul(UInt256 left, UInt256 right) {
   // TODO: implement
   return product;
 }
-Footer
-© 2023 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-assignments-for-csf/uint256.c at main · Charles201428/assignments-for-csf
