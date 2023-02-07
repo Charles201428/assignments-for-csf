@@ -280,13 +280,21 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
   uint64_t data1 = val.data[1];
   uint64_t data2 = val.data[2];
   uint64_t data3 = val.data[3];
-  if (shift >= 196){
+  if (shift > 192){
     //this will just move the first 256-shift bits to the last uint64, while other things are filled with zero
-    data3 = data0 & ~(~0U << (256-shift));
-    data3 = data3 << (shift -196);
+    data3 = data0 & ~(~0UL << (256-shift));
+    //printf("%d\n", data3);
+    data3 = (uint64_t) data3 << (shift - 192);
+    
     data0 = 0U;
     data1 = 0U;
     data2 = 0U;
+  }
+  else if (shift == 192){
+    data3 = data0;
+    data0 = 0;
+    data1 = 0;
+    data2 = 0;
   }
   else if (shift >= 128){
     //a bits got preserved
@@ -345,8 +353,7 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     int g = 64 - f; //g bits to right shift
     uint64_t temp6 = data0 >> g;
     data1 = (temp5 << f) + temp6;
-    uint64_t temp7 = data0 & ~(~0U << g);
-    data0 = temp7 << (64-g);
+    data0 = data0 << (64-g);
   }
   uint64_t arr[4] = {data0, data1, data2, data3};
   result = uint256_create(arr);
