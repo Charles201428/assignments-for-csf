@@ -271,31 +271,7 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
 
 
 
-int uint256_bit_is_set(UInt256 val, unsigned index) {
-  if(index / 64 == 0){
-    if(val.data[0] & (1 << (index % 64))){
-      return 1;
-    }
-    return 0;
 
-  } else if(index / 64 == 1){
-      if(val.data[1] & (1 << (index % 64))){
-        return 1;
-      }
-      return 0;
-  
-  } else if (index / 64 == 2){
-      if(val.data[2] & (1 << (index % 64))){
-        return 1;
-      }
-      return 0;
-  } else if (index / 64 == 3){
-      if(val.data[3] & (1 << (index % 64))){
-        return 1;
-      }
-      return 0;
-  }
-}
 
 
 UInt256 uint256_leftshift(UInt256 val, unsigned shift){
