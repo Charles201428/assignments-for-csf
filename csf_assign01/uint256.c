@@ -373,36 +373,48 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
   return result;
 }
 
-
-// Compute the product of two UInt256 values.
-UInt256 uint256_mul(UInt256 left, UInt256 right) {
-  UInt256 product;
-  // TODO: implement
-  return product;
-}
-
 int uint256_bit_is_set(UInt256 val, unsigned index) {
   if(index / 64 == 0){
-    if(val.data[0] & (1 << (index % 64))){
+    if(val.data[0] & (1UL << (index % 64))){
       return 1;
     }
     return 0;
 
   } else if(index / 64 == 1){
-      if(val.data[1] & (1 << (index % 64))){
+      if(val.data[1] & (1UL << (index % 64))){
         return 1;
       }
       return 0;
   
   } else if (index / 64 == 2){
-      if(val.data[2] & (1 << (index % 64))){
+      if(val.data[2] & (1UL << (index % 64))){
         return 1;
       }
       return 0;
   } else if (index / 64 == 3){
-      if(val.data[3] & (1 << (index % 64))){
+      if(val.data[3] & (1UL << (index % 64))){
         return 1;
       }
       return 0;
   }
 }
+
+UInt256 uint256_mul(UInt256 left, UInt256 right) {
+  UInt256 product;
+  product.data[0] = 0;
+  product.data[1] = 0;
+  product.data[2] = 0;
+  product.data[3] = 0;
+  
+  for (unsigned int i = 0; i < 256; i++){
+    if(uint256_bit_is_set(left, i)){
+     UInt256 res = uint256_leftshift(right, i);
+     product = uint256_add(product, res);
+    }
+
+  }
+
+  return product;
+}
+
+
