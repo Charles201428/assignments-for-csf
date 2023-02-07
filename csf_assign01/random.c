@@ -6,9 +6,9 @@
 #include "uint256.c"
 
 int main(){
-    uint64_t a[4] = {1, 0, 0, 0};
+    uint64_t a[4] = {1, 15, 0, 0};
     UInt256 val = uint256_create(a);
-    val = uint256_leftshift(val, 100);
+    val = uint256_leftshift(val, 80);
     //char *str = uint256_format_as_hex(test);
     //printf("%s\n", str);
     uint64_t data0 = val.data[0];

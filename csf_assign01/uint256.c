@@ -296,7 +296,7 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data1 = 0;
     data2 = 0;
   }
-  else if (shift >= 128){
+  else if (shift > 128){
     //a bits got preserved
     int a = 256 - shift;
     //first few bits in data1: we need a-64 bits of data1
@@ -316,7 +316,13 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data1 = 0U;
     data0 = 0U;   
   }
-  else if(shift >= 64){
+  else if (shift == 128){
+    data3 = data1;
+    data2 = data0;
+    data1 = 0;
+    data0 = 0;
+  }
+  else if(shift > 64){
     //we need to eleminate leading shift-64 bit of data 2 other than whole data3 
     int a = shift - 64;
     int b = 64 - a; // b bits of data2 get preserved;
@@ -332,9 +338,16 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data2 = (temp3 << e) + temp4;
     int g = 64 - f; //we have g bits of data0 left
     uint64_t temp5 = data0 & ~(~0U << g);
-    data1 = temp5 << (64-g);
+    
+    data1 = temp5 << g;
     data0 = 0;
     
+  }
+  else if(shift == 64){
+    data3 = data2;
+    data2 = data1;
+    data1 = data0;
+    data0 = 0;
   }
   else{
     int a = 64 - shift; //we preserve first a bits of data3
