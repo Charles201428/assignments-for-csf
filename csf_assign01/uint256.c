@@ -286,9 +286,9 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     //printf("%d\n", data3);
     data3 = (uint64_t) data3 << (shift - 192);
     
-    data0 = 0U;
-    data1 = 0U;
-    data2 = 0U;
+    data0 = 0UL;
+    data1 = 0UL;
+    data2 = 0UL;
   }
   else if (shift == 192){
     data3 = data0;
@@ -301,7 +301,7 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     int a = 256 - shift;
     //first few bits in data1: we need a-64 bits of data1
     int e = a - 64;
-    uint64_t temp1 = data1 & ~(~0U << e);
+    uint64_t temp1 = data1 & ~(~0UL << e);
     //then we need b=64-e bits to fill data3, i.e, the leading b bits of data0
     int b = 64 - e;
     
@@ -309,12 +309,12 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     int c = 64 - b;
     uint64_t temp2 = data0 >> c;
     //the first c bits of data0 will go to 
-    uint64_t temp3 = data0 & ~(~0U << c);
+    uint64_t temp3 = data0 & ~(~0UL << c);
     //the let's plug these values to data3 first
     data3 = (temp1 << b) + temp2;
     data2 = temp3 << (64-c);
-    data1 = 0U;
-    data0 = 0U;   
+    data1 = 0UL;
+    data0 = 0UL;   
   }
   else if (shift == 128){
     data3 = data1;
@@ -328,16 +328,16 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     int b = 64 - a; // b bits of data2 get preserved;
     int c = 64 - b; // c more bits of data1 needed to fill data3
     int d = 64 - c; // d bits to right shift
-    uint64_t temp1 = data2 & ~(~0U << b);
+    uint64_t temp1 = data2 & ~(~0UL << b);
     uint64_t temp2 = data1 >> d;
     data3 = (temp1 << c) + temp2;
-    uint64_t temp3 = data1 & ~(~0U << d); // this gives first d bits of data1
+    uint64_t temp3 = data1 & ~(~0UL << d); // this gives first d bits of data1
     int e = 64 - d; //we need e more bits of data0 to fill data2
     int f = 64 - e; //f bits to right shift
     uint64_t temp4 = data0 >> f;
     data2 = (temp3 << e) + temp4;
     int g = 64 - f; //we have g bits of data0 left
-    uint64_t temp5 = data0 & ~(~0U << g);
+    uint64_t temp5 = data0 & ~(~0UL << g);
     
     data1 = temp5 << g;
     data0 = 0;
@@ -353,16 +353,16 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     int a = 64 - shift; //we preserve first a bits of data3
     int b = 64 - a; // b leading bits for data2 required to fill data3
     int c = 64 - b; // c bits need to left shift
-    uint64_t temp1 = data3 & ~(~0U << a);
+    uint64_t temp1 = data3 & ~(~0UL << a);
     uint64_t temp2 = data2 >> c;
     data3 = (temp1 << b) + temp2;
-    uint64_t temp3 = data2 & ~(~0U << c);
+    uint64_t temp3 = data2 & ~(~0UL << c);
     int d = 64 - c; // d more bits of data1 needed to fill data2
     int e = 64 - d; // e bits right shift
     uint64_t temp4 = data1 >> e;
     data2 = (temp3 << d) + temp4;
     int f = 64 - e; //f bits of data0 needed to fill data1
-    uint64_t temp5 = data1 & ~(~0U << e);
+    uint64_t temp5 = data1 & ~(~0UL << e);
     int g = 64 - f; //g bits to right shift
     uint64_t temp6 = data0 >> g;
     data1 = (temp5 << f) + temp6;
