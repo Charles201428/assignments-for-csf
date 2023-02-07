@@ -241,13 +241,12 @@ uint64_t uint256_get_bits(UInt256 val, unsigned index) {
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
  UInt256 sum;
-  // TODO: implement
  int carry = 0;
  for (int i = 0; i<4; ++i){
  uint64_t temp = left.data[i] + right.data[i] + carry;
  sum.data[i] = temp;
  if (temp < left.data[i] || temp < right.data[i]){
- carry = 1;
+  carry = 1;
  }
  else{
   carry = 0;
@@ -269,6 +268,115 @@ UInt256 uint256_sub(UInt256 left, UInt256 right) {
   result = uint256_add(left, negativeRight);
   return result;
 }
+
+
+
+int uint256_bit_is_set(UInt256 val, unsigned index) {
+  if(index / 64 == 0){
+    if(val.data[0] & (1 << (index % 64))){
+      return 1;
+    }
+    return 0;
+
+  } else if(index / 64 == 1){
+      if(val.data[1] & (1 << (index % 64))){
+        return 1;
+      }
+      return 0;
+  
+  } else if (index / 64 == 2){
+      if(val.data[2] & (1 << (index % 64))){
+        return 1;
+      }
+      return 0;
+  } else if (index / 64 == 3){
+      if(val.data[3] & (1 << (index % 64))){
+        return 1;
+      }
+      return 0;
+  }
+}
+
+
+UInt256 uint256_leftshift(UInt256 val, unsigned shift){
+  UInt256 result;
+  uint64_t data0 = val.data[0];
+  uint64_t data1 = val.data[1];
+  uint64_t data2 = val.data[2];
+  uint64_t data3 = val.data[3];
+  if (shift >= 196){
+    //this will just move the first 256-shift bits to the last uint64, while other things are filled with zero
+    data3 = data0 & ~(~0U << (256-shift));
+    data3 = data3 << (shift -196);
+    data0 = 0U;
+    data1 = 0U;
+    data2 = 0U;
+  }
+  else if (shift >= 128){
+    //a bits got preserved
+    int a = 256 - shift;
+    //first few bits in data1: we need a-64 bits of data1
+    int e = a - 64;
+    uint64_t temp1 = data1 & ~(~0U << e);
+    //then we need b=64-e bits to fill data3, i.e, the leading b bits of data0
+    int b = 64 - e;
+    
+    //then take the rest bits of data0 out
+    int c = 64 - b;
+    uint64_t temp2 = data0 >> c;
+    //the first c bits of data0 will go to 
+    uint64_t temp3 = data0 & ~(~0U << c);
+    //the let's plug these values to data3 first
+    data3 = (temp1 << b) + temp2;
+    data2 = temp3 << (64-c);
+    data1 = 0U;
+    data0 = 0U;   
+  }
+  else if(shift >= 64){
+    //we need to eleminate leading shift-64 bit of data 2 other than whole data3 
+    int a = shift - 64;
+    int b = 64 - a; // b bits of data2 get preserved;
+    int c = 64 - b; // c more bits of data1 needed to fill data3
+    int d = 64 - c; // d bits to right shift
+    uint64_t temp1 = data2 & ~(~0U << b);
+    uint64_t temp2 = data1 >> d;
+    data3 = (temp1 << c) + temp2;
+    uint64_t temp3 = data1 & ~(~0U << d); // this gives first d bits of data1
+    int e = 64 - d; //we need e more bits of data0 to fill data2
+    int f = 64 - e; //f bits to right shift
+    uint64_t temp4 = data0 >> f;
+    data2 = (temp3 << e) + temp4;
+    int g = 64 - f; //we have g bits of data0 left
+    uint64_t temp5 = data0 & ~(~0U << g);
+    data1 = temp5 << (64-g);
+    data0 = 0;
+    
+  }
+  else{
+    int a = 64 - shift; //we preserve first a bits of data3
+    int b = 64 - a; // b leading bits for data2 required to fill data3
+    int c = 64 - b; // c bits need to left shift
+    uint64_t temp1 = data3 & ~(~0U << a);
+    uint64_t temp2 = data2 >> c;
+    data3 = (temp1 << b) + temp2;
+    uint64_t temp3 = data2 & ~(~0U << c);
+    int d = 64 - c; // d more bits of data1 needed to fill data2
+    int e = 64 - d; // e bits right shift
+    uint64_t temp4 = data1 >> e;
+    data2 = (temp3 << d) + temp4;
+    int f = 64 - e; //f bits of data0 needed to fill data1
+    uint64_t temp5 = data1 & ~(~0U << e);
+    int g = 64 - f; //g bits to right shift
+    uint64_t temp6 = data0 >> g;
+    data1 = (temp5 << f) + temp6;
+    uint64_t temp7 = data0 & ~(~0U << g);
+    data0 = temp7 << (64-g);
+  }
+  uint64_t arr[4] = {data0, data1, data2, data3};
+  result = uint256_create(arr);
+  return result;
+}
+
 
 // Compute the product of two UInt256 values.
 UInt256 uint256_mul(UInt256 left, UInt256 right) {
