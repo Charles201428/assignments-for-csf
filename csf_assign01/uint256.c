@@ -349,7 +349,7 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data1 = data0;
     data0 = 0;
   }
-  else{
+  else if(shift > 0){
     int a = 64 - shift; //we preserve first a bits of data3
     int b = 64 - a; // b leading bits for data2 required to fill data3
     int c = 64 - b; // c bits need to left shift
