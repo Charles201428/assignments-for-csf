@@ -240,19 +240,19 @@ uint64_t uint256_get_bits(UInt256 val, unsigned index) {
 
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
- UInt256 sum;
- int carry = 0;
- for (int i = 0; i<4; ++i){
- uint64_t temp = left.data[i] + right.data[i] + carry;
- sum.data[i] = temp;
- if (temp < left.data[i] || temp < right.data[i]){
-  carry = 1;
- }
- else{
-  carry = 0;
+  UInt256 sum;
+  int carry = 0;
+  for(int i = 0 ; i < 4; ++i){
+
+    if (left.data[i] + right.data[i] + carry < left.data[i] || left.data[i] + right.data[i] + carry < right.data[i] || left.data[i] + right.data[i] < left.data[i]){
+      sum.data[i] = left.data[i] + right.data[i] + carry;
+      carry = 1;
+    } else {
+      sum.data[i] = left.data[i] + right.data[i] + carry;
+      carry = 0;
+    }
   }
- }
- return sum;
+  return sum;
 }
 
 // Compute the difference of two UInt256 values.
