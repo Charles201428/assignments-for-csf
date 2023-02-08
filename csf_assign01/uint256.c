@@ -32,6 +32,10 @@ UInt256 uint256_create(const uint64_t data[4]) {
 // Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
   UInt256 result;
+  result.data[0] = 0;
+  result.data[1] = 0;
+  result.data[2] = 0;
+  result.data[3] = 0;
   int len = strlen(hex);
   //store the rightmost 64 digits of the hex if the length of hex exceeds 64
   if (len >= 64){
@@ -45,15 +49,15 @@ UInt256 uint256_create_from_hex(const char *hex) {
     }
     newchar1[16] = '\0';
     for (int j = 16; j < 32; j++){
-      newchar2[j-16] = hex[j];
+      newchar2[j] = hex[j];
     }
     newchar2[16] = '\0';
     for (int k = 32; k < 48; k++){
-      newchar3[k-32] = hex[k];
+      newchar3[k] = hex[k];
     }
     newchar3[16] = '\0';
     for (int l = 48; l < 64; l++){
-      newchar4[l-48] = hex[l];
+      newchar4[l] = hex[l];
     }
     newchar4[16] = '\0';
     char *str1;
@@ -73,101 +77,51 @@ UInt256 uint256_create_from_hex(const char *hex) {
 
   }
   else{
-    
-    if (len <= 16){
-      char *ptr;
-      long int0 = strtoul(hex, &ptr, 16);
-      result.data[0] = int0;
-      result.data[1] = 0;
-      result.data[2] = 0;
-      result.data[3] = 0;
+    int quo = len/16;
+    int rem = len%16;
+    /*uint64_t data0 = 0;
+    uint64_t data1 = 0;
+    uint64_t data2 = 0;
+    uint64_t data3 = 0;
+    */
+    char remain[rem+1];
+    for (int j = 0; j < rem; j++){
+      remain[j] = hex[j];
     }
-    else if(len <= 32){
-      char newchar1[17];
-      char newchar2[len-15];
-      for(int i = 0; i < (len-16); i++){
-        newchar2[i] = hex[i];  
-      }
-      newchar1[16] = '\0';
-      for (int j = len - 16; j < len; j++){
-        newchar1[j-(len-16)] = hex[j];
-      }
-      newchar2[len-16] = '\0';
+    remain[rem] = '\0';
+    char *strsig;
+    uint64_t significant = strtoul(remain, &strsig, 16);
+    result.data[quo] = significant;
 
-      char *ptr0;
-      char *ptr1;
-      long int0 = strtoul(newchar1, &ptr0, 16);
-      long int1 = strtoul(newchar2, &ptr1, 16);
-      result.data[0] = int0;
-      result.data[1] = int1;
-      result.data[2] = 0;
-      result.data[3] = 0;
-    }
-    else if(len <= 49){
-      char newchar1[17];
-      char newchar2[17];
-      char newchar3[len-31];
-      for(int i =0; i < len-32; i++){
-        newchar3[i] = hex[i];  
-      }
-      newchar1[16] = '\0';
-      
-      for (int j = len-32; j < len-16; j++){
-        newchar2[j - (len-32)] = hex[j];
-      }
-      newchar2[16] = '\0';
-
-      for (int k = len-16; k < len; k++){
-        newchar1[k - (len-16)] = hex[k];
-      }
-      newchar3[len-32] = '\0';
-      char *ptr0;
-      char *ptr1;
-      char *ptr2;
-      long int0 = strtoul(newchar1, &ptr0, 16);
-      long int1 = strtoul(newchar2, &ptr1, 16);
-      long int2 = strtoul(newchar3, &ptr2, 16);
-      result.data[0] = int0;
-      result.data[1] = int1;
-      result.data[2] = int2;
-      result.data[3] = 0;
-    }
-    else{
-      char newchar1[17];
-      char newchar2[17];
-      char newchar3[17];
-      char newchar4[len-47];
-      for(int i = 0; i < (len - 48); i++){
-        newchar4[i] = hex[i];  
-      }
-      newchar1[16] = '\0';
-      for (int j = (len-48); j < (len-32); j++){
-        newchar2[j - (len-48)] = hex[j];
-      }
-      newchar2[16] = '\0';
-      for (int k = len-32; k < len-16; k++){
-        newchar3[k-(len-32)] = hex[k];
-      }
-      newchar3[16] = '\0';
-      for (int l = len-16; l < len; l++){
-        newchar1[l-(len-16)] = hex[l];
-      }
-      newchar4[len - 48] = '\0';
-      char *ptr0;
-      char *ptr1;
-      char *ptr2;
-      char *ptr3;
-      long int0 = strtoul(newchar1, &ptr0, 16);
-      long int1 = strtoul(newchar2, &ptr1, 16);
-      long int2 = strtoul(newchar3, &ptr2, 16);
-      long int3 = strtoul(newchar4, &ptr3, 16);
-      result.data[0] = int0;
-      result.data[1] = int2;
-      result.data[2] = int1;
-      result.data[3] = int3;
-    }
+    char rest[len-rem+1];
     
+    for (int i = 0; i < len-rem; i++){
+      rest[i] = hex[i+rem];      
+    }
+    rest[len-rem] = '\0';
+    //int newlen = strlen(rest);
+    for (int i = 0; i < quo; i++){
+      char *stri;
+      char quoi[17];
+      quoi[16] = '\0';
+      for (int j = 0; j < 16; j++){
+        quoi[j] = rest[i*16+j];
+      }
+      uint64_t inti = strtoul(quoi, &stri, 16);
+      result.data[quo-i] = inti;
+    }
+
+
+
+
+
+
   }
+
+
+
+
+
   return result;
 }
 
