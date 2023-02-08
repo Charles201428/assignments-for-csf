@@ -29,32 +29,33 @@ UInt256 uint256_create(const uint64_t data[4]) {
   return result;
 }
 
+// Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
   UInt256 result;
   int len = strlen(hex);
+  
+
   //store the rightmost 64 digits of the hex if the length of hex exceeds 64
-  if (len >65){
-    char newchar1[17];
-    char newchar2[17];
-    char newchar3[17];
-    char newchar4[17];
+  
+
+  if (len >64){
+    char newchar1[16];
+    char newchar2[16];
+    char newchar3[16];
+    char newchar4[16];
     //only store the first 64 chars and divide them into group per 16 chars
     for (int i = 0; i < 16; i++){
       newchar1[i] = hex[i];
     }
-    newchar1[16] = '\0';
     for (int j = 16; j < 32; j++){
       newchar2[j] = hex[j];
     }
-    newchar2[16] = '\0';
     for (int k = 32; k < 48; k++){
       newchar3[k] = hex[k];
     }
-    newchar3[16] = '\0';
     for (int l = 48; l < 64; l++){
       newchar4[l] = hex[l];
     }
-    newchar4[16] = '\0';
     char *str1;
     char *str2;
     char *str3;
@@ -73,7 +74,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
   }
   else{
     
-    if (len <= 17){
+    if (len <= 16){
       char *ptr;
       long int0 = strtoul(hex, &ptr, 16);
       result.data[0] = int0;
@@ -81,18 +82,15 @@ UInt256 uint256_create_from_hex(const char *hex) {
       result.data[2] = 0;
       result.data[3] = 0;
     }
-    else if(len <= 33){
-      char newchar1[17];
-      char newchar2[len-16 + 1];
+    else if(len <= 32){
+      char newchar1[16];
+      char newchar2[len-16];
       for(size_t i =0; i < 16; i++){
         newchar1[i] = hex[i];  
       }
-      newchar1[16] = '\0';
       for (int j = 16; j < len; j++){
         newchar2[j] = hex[j];
       }
-      newchar2[len-16] = '\0';
-
       char *ptr0;
       char *ptr1;
       long int0 = strtoul(newchar1, &ptr0, 16);
@@ -103,23 +101,18 @@ UInt256 uint256_create_from_hex(const char *hex) {
       result.data[3] = 0;
     }
     else if(len <= 48){
-      char newchar1[17];
-      char newchar2[17];
-      char newchar3[len-32 + 1];
+      char newchar1[16];
+      char newchar2[16];
+      char newchar3[len-32];
       for(size_t i =0; i < 16; i++){
         newchar1[i] = hex[i];  
       }
-      newchar1[16] = '\0';
-      
       for (int j = 16; j < 32; j++){
-        newchar2[j - 16] = hex[j];
+        newchar2[j] = hex[j];
       }
-      newchar2[16] = '\0';
-
       for (int k = 32; k < len; k++){
-        newchar3[k - 32] = hex[k];
+        newchar3[k] = hex[k];
       }
-      newchar3[len-32] = '\0';
       char *ptr0;
       char *ptr1;
       char *ptr2;
@@ -132,26 +125,22 @@ UInt256 uint256_create_from_hex(const char *hex) {
       result.data[3] = 0;
     }
     else{
-      char newchar1[17];
-      char newchar2[17];
-      char newchar3[17];
-      char newchar4[len-48 + 1];
+      char newchar1[16];
+      char newchar2[16];
+      char newchar3[16];
+      char newchar4[len-48];
       for(size_t i =0; i < 16; i++){
         newchar1[i] = hex[i];  
       }
-      newchar1[16] = '\0';
       for (int j = 16; j < 32; j++){
-        newchar2[j -16] = hex[j];
+        newchar2[j] = hex[j];
       }
-      newchar2[16] = '\0';
       for (int k = 32; k < len; k++){
-        newchar3[k-32] = hex[k];
+        newchar3[k] = hex[k];
       }
-      newchar3[16] = '\0';
       for (int l = 48; l < len; l++){
-        newchar4[l-48] = hex[l];
+        newchar4[l] = hex[l];
       }
-      newchar3[len - 48] = '\0';
       char *ptr0;
       char *ptr1;
       char *ptr2;
@@ -167,6 +156,12 @@ UInt256 uint256_create_from_hex(const char *hex) {
     }
     
   }
+  
+  
+ 
+  
+
+ 
   return result;
 }
 
@@ -245,19 +240,19 @@ uint64_t uint256_get_bits(UInt256 val, unsigned index) {
 
 // Compute the sum of two UInt256 values.
 UInt256 uint256_add(UInt256 left, UInt256 right) {
-  UInt256 sum;
-  int carry = 0;
-  for(int i = 0 ; i < 4; ++i){
-
-    if (left.data[i] + right.data[i] + carry < left.data[i] || left.data[i] + right.data[i] + carry < right.data[i] || left.data[i] + right.data[i] < left.data[i]){
-      sum.data[i] = left.data[i] + right.data[i] + carry;
-      carry = 1;
-    } else {
-      sum.data[i] = left.data[i] + right.data[i] + carry;
-      carry = 0;
-    }
+ UInt256 sum;
+ int carry = 0;
+ for (int i = 0; i<4; ++i){
+ uint64_t temp = left.data[i] + right.data[i] + carry;
+ sum.data[i] = temp;
+ if (temp < left.data[i] || temp < right.data[i]){
+  carry = 1;
+ }
+ else{
+  carry = 0;
   }
-  return sum;
+ }
+ return sum;
 }
 
 // Compute the difference of two UInt256 values.
@@ -304,22 +299,14 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
   else if (shift > 128){
     //a bits got preserved
     int a = 256 - shift;
-    //first few bits in data1: we need a-64 bits of data1
-    int e = a - 64;
-    uint64_t temp1 = data1 & ~(~0UL << e);
-    //then we need b=64-e bits to fill data3, i.e, the leading b bits of data0
-    int b = 64 - e;
-    
-    //then take the rest bits of data0 out
+    //first b bits of data1 get preserved;
+    int b = a - 64;
+    // c bits to left shift
     int c = 64 - b;
-    uint64_t temp2 = data0 >> c;
-    //the first c bits of data0 will go to 
-    uint64_t temp3 = data0 & ~(~0UL << c);
-    //the let's plug these values to data3 first
-    data3 = (temp1 << b) + temp2;
-    data2 = temp3 << (64-c);
-    data1 = 0UL;
-    data0 = 0UL;   
+    data3 = (data1 << c) + (data0 >> b);
+    data2 = data0 << c;
+    data1 = 0;
+    data0 = 0;
   }
   else if (shift == 128){
     data3 = data1;
@@ -328,23 +315,11 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data0 = 0;
   }
   else if(shift > 64){
-    //we need to eleminate leading shift-64 bit of data 2 other than whole data3 
-    int a = shift - 64;
-    int b = 64 - a; // b bits of data2 get preserved;
-    int c = 64 - b; // c more bits of data1 needed to fill data3
-    int d = 64 - c; // d bits to right shift
-    uint64_t temp1 = data2 & ~(~0UL << b);
-    uint64_t temp2 = data1 >> d;
-    data3 = (temp1 << c) + temp2;
-    uint64_t temp3 = data1 & ~(~0UL << d); // this gives first d bits of data1
-    int e = 64 - d; //we need e more bits of data0 to fill data2
-    int f = 64 - e; //f bits to right shift
-    uint64_t temp4 = data0 >> f;
-    data2 = (temp3 << e) + temp4;
-    int g = 64 - f; //we have g bits of data0 left
-    uint64_t temp5 = data0 & ~(~0UL << g);
-    
-    data1 = temp5 << g;
+    int comp1 = shift - 64;
+    int comp2 = 64 - comp1;
+    data3 = (data2 << comp1) + (data1 >> comp2);
+    data2 = (data1 << comp1) + (data0 >> comp2);
+    data1 = (data0 << comp1); 
     data0 = 0;
     
   }
@@ -355,23 +330,11 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
     data0 = 0;
   }
   else if(shift > 0){
-    int a = 64 - shift; //we preserve first a bits of data3
-    int b = 64 - a; // b leading bits for data2 required to fill data3
-    int c = 64 - b; // c bits need to left shift
-    uint64_t temp1 = data3 & ~(~0UL << a);
-    uint64_t temp2 = data2 >> c;
-    data3 = (temp1 << b) + temp2;
-    uint64_t temp3 = data2 & ~(~0UL << c);
-    int d = 64 - c; // d more bits of data1 needed to fill data2
-    int e = 64 - d; // e bits right shift
-    uint64_t temp4 = data1 >> e;
-    data2 = (temp3 << d) + temp4;
-    int f = 64 - e; //f bits of data0 needed to fill data1
-    uint64_t temp5 = data1 & ~(~0UL << e);
-    int g = 64 - f; //g bits to right shift
-    uint64_t temp6 = data0 >> g;
-    data1 = (temp5 << f) + temp6;
-    data0 = data0 << (64-g);
+    int comp = 64 - shift;
+    data3 = (data3 << shift) + (data2 >> comp);
+    data2 = (data2 << shift) + (data1 >> comp);
+    data1 = (data1 << shift) + (data0 >> comp);
+    data0 = (data0 << shift);
   }
   uint64_t arr[4] = {data0, data1, data2, data3};
   result = uint256_create(arr);
@@ -402,6 +365,7 @@ int uint256_bit_is_set(UInt256 val, unsigned index) {
       }
       return 0;
   }
+  return 0;
 }
 
 UInt256 uint256_mul(UInt256 left, UInt256 right) {
