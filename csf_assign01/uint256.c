@@ -307,6 +307,7 @@ UInt256 uint256_leftshift(UInt256 val, unsigned shift){
 }
 
 int uint256_bit_is_set(UInt256 val, unsigned index) {
+  //when the length of index is between 0 - 63
   if(index / 64 == 0){
     if(val.data[0] & (1UL << (index % 64))){
       return 1;
@@ -314,17 +315,20 @@ int uint256_bit_is_set(UInt256 val, unsigned index) {
     return 0;
 
   } else if(index / 64 == 1){
+    //when the length of index is between 64 - 127
       if(val.data[1] & (1UL << (index % 64))){
         return 1;
       }
       return 0;
   
   } else if (index / 64 == 2){
+    //when the length of index is between 128 - 191
       if(val.data[2] & (1UL << (index % 64))){
         return 1;
       }
       return 0;
   } else if (index / 64 == 3){
+    //when the length of index is between 192 - 255
       if(val.data[3] & (1UL << (index % 64))){
         return 1;
       }
@@ -341,6 +345,7 @@ UInt256 uint256_mul(UInt256 left, UInt256 right) {
   product.data[3] = 0;
   
   for (unsigned int i = 0; i < 256; i++){
+    // use the for loop to sum up all the values of right after the left shift
     if(uint256_bit_is_set(left, i)){
      UInt256 res = uint256_leftshift(right, i);
      product = uint256_add(product, res);
