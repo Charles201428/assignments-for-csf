@@ -32,9 +32,9 @@ UInt256 uint256_create(const uint64_t data[4]) {
 // Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
   UInt256 result;
-  int len = strlen(hex)+1;
+  int len = strlen(hex);
   //store the rightmost 64 digits of the hex if the length of hex exceeds 64
-  if (len >= 65){
+  if (len >= 64){
     char newchar1[17];
     char newchar2[17];
     char newchar3[17];
@@ -74,7 +74,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
   }
   else{
     
-    if (len <= 17){
+    if (len <= 16){
       char *ptr;
       long int0 = strtoul(hex, &ptr, 16);
       result.data[0] = int0;
@@ -82,17 +82,17 @@ UInt256 uint256_create_from_hex(const char *hex) {
       result.data[2] = 0;
       result.data[3] = 0;
     }
-    else if(len <= 33){
+    else if(len <= 32){
       char newchar1[17];
-      char newchar2[len-16];
-      for(int i = 0; i < (len-17); i++){
+      char newchar2[len-15];
+      for(int i = 0; i < (len-16); i++){
         newchar2[i] = hex[i];  
       }
       newchar1[16] = '\0';
-      for (int j = len - 17; j < len; j++){
-        newchar1[j-(len-17)] = hex[j];
+      for (int j = len - 16; j < len; j++){
+        newchar1[j-(len-16)] = hex[j];
       }
-      newchar2[len-17] = '\0';
+      newchar2[len-16] = '\0';
 
       char *ptr0;
       char *ptr1;
@@ -106,21 +106,21 @@ UInt256 uint256_create_from_hex(const char *hex) {
     else if(len <= 49){
       char newchar1[17];
       char newchar2[17];
-      char newchar3[len-32];
-      for(int i =0; i < len-33; i++){
+      char newchar3[len-31];
+      for(int i =0; i < len-32; i++){
         newchar3[i] = hex[i];  
       }
       newchar1[16] = '\0';
       
-      for (int j = len-33; j < len-17; j++){
-        newchar2[j - (len-33)] = hex[j];
+      for (int j = len-32; j < len-16; j++){
+        newchar2[j - (len-32)] = hex[j];
       }
       newchar2[16] = '\0';
 
-      for (int k = len-17; k < len; k++){
-        newchar1[k - (len-17)] = hex[k];
+      for (int k = len-16; k < len; k++){
+        newchar1[k - (len-16)] = hex[k];
       }
-      newchar3[len-33] = '\0';
+      newchar3[len-32] = '\0';
       char *ptr0;
       char *ptr1;
       char *ptr2;
@@ -136,23 +136,23 @@ UInt256 uint256_create_from_hex(const char *hex) {
       char newchar1[17];
       char newchar2[17];
       char newchar3[17];
-      char newchar4[len-48];
-      for(int i = 0; i < (len - 49); i++){
+      char newchar4[len-47];
+      for(int i = 0; i < (len - 48); i++){
         newchar4[i] = hex[i];  
       }
       newchar1[16] = '\0';
-      for (int j = (len-49); j < (len-33); j++){
-        newchar2[j - (len-49)] = hex[j];
+      for (int j = (len-48); j < (len-32); j++){
+        newchar2[j - (len-48)] = hex[j];
       }
       newchar2[16] = '\0';
-      for (int k = len-33; k < len-17; k++){
-        newchar3[k-(len-33)] = hex[k];
+      for (int k = len-32; k < len-16; k++){
+        newchar3[k-(len-32)] = hex[k];
       }
       newchar3[16] = '\0';
-      for (int l = len-17; l < len; l++){
-        newchar1[l-(len-17)] = hex[l];
+      for (int l = len-16; l < len; l++){
+        newchar1[l-(len-16)] = hex[l];
       }
-      newchar4[len - 49] = '\0';
+      newchar4[len - 48] = '\0';
       char *ptr0;
       char *ptr1;
       char *ptr2;
