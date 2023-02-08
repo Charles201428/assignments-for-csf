@@ -39,25 +39,30 @@ UInt256 uint256_create_from_hex(const char *hex) {
   int len = strlen(hex);
   //store the rightmost 64 digits of the hex if the length of hex exceeds 64
   if (len >= 64){
+    char newstuff[65];
+    for (int i = 0; i < 64; i++){
+      newstuff[i] = hex[i+len-64];
+    }
+    newstuff[64] = '\0';
     char newchar1[17];
     char newchar2[17];
     char newchar3[17];
     char newchar4[17];
     //only store the first 64 chars and divide them into group per 16 chars
     for (int i = 0; i < 16; i++){
-      newchar1[i] = hex[i];
+      newchar1[i] = newstuff[i];
     }
     newchar1[16] = '\0';
     for (int j = 16; j < 32; j++){
-      newchar2[j] = hex[j];
+      newchar2[j-16] = newstuff[j];
     }
     newchar2[16] = '\0';
     for (int k = 32; k < 48; k++){
-      newchar3[k] = hex[k];
+      newchar3[k-32] = newstuff[k];
     }
     newchar3[16] = '\0';
     for (int l = 48; l < 64; l++){
-      newchar4[l] = hex[l];
+      newchar4[l-48] = newstuff[l];
     }
     newchar4[16] = '\0';
     char *str1;
