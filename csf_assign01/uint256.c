@@ -103,7 +103,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
       result.data[2] = 0;
       result.data[3] = 0;
     }
-    else if(len <= 48){
+    else if(len <= 49){
       char newchar1[17];
       char newchar2[17];
       char newchar3[len-32];
