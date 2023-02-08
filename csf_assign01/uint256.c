@@ -32,7 +32,7 @@ UInt256 uint256_create(const uint64_t data[4]) {
 // Create a UInt256 value from a string of hexadecimal digits.
 UInt256 uint256_create_from_hex(const char *hex) {
   UInt256 result;
-  int len = strlen(hex);
+  int len = strlen(hex)+1;
   //store the rightmost 64 digits of the hex if the length of hex exceeds 64
   if (len >= 65){
     char newchar1[17];
