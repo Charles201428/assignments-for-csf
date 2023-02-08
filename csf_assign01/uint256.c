@@ -92,7 +92,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
     char *strsig;
     uint64_t significant = strtoul(remain, &strsig, 16);
     result.data[quo] = significant;
-
+    printf("current quo: %lx. current num: %lx\n", quo, result.data[quo]);
     char rest[len-rem+1];
     
     for (int i = 0; i < len-rem; i++){
@@ -108,7 +108,7 @@ UInt256 uint256_create_from_hex(const char *hex) {
         quoi[j] = rest[i*16+j];
       }
       uint64_t inti = strtoul(quoi, &stri, 16);
-      result.data[quo-i] = inti;
+      result.data[quo-i-1] = inti;
     }
 
 
