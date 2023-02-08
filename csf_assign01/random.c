@@ -7,7 +7,7 @@
 
 int main()
 {
-    char *str = "123456789abcde510";
+    char *str = "123456789abcde510abc1234567891234563179749766976379173957579676976";
     UInt256 num = uint256_create_from_hex(str);
     uint64_t data0 = num.data[0];
     uint64_t data1 = num.data[1];
