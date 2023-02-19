@@ -72,3 +72,8 @@ hex_format_byte_as_hex:
     addq $3, %rsi
     popq %rbp
     ret 
+
+.globl hex_format_offset
+hex_format_offset:
+ /* TODO: implement */
+ ret
