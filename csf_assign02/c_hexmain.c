@@ -20,10 +20,10 @@ void printdata(char data[]) {
 }
 
 // this function prints the space between hax pair and printables to reach allignment
-void printsupplement(int string_index) {
-  if(string_index % 16) { //this shows how many hex dig are on this line
+void printsupplement(int index) {
+  if(index % 16) { //this shows how many hex dig are on this line
     int i = 0;
-    while(i < 16 - (string_index % 16)) {
+    while(i < 16 - (index % 16)) {
       hex_write_string("   ");
       i++; 
     }
@@ -31,6 +31,16 @@ void printsupplement(int string_index) {
   }
 }
 
+//print the hex-pair for each line
+void printloop(int readlength, char data[17], char hex[3]){
+  for(int i = 0; i < readlength; i++) {
+      //loop through every element of this string
+      hex_format_byte_as_hex(data[i], hex); 
+      hex_write_string(hex); 
+      // then we print out the hex pair
+      hex_write_string(" "); 
+    }
+}
 
 
 int main(void) {
@@ -47,12 +57,9 @@ int main(void) {
 
   while (readlength > 0) { //update readlength at each loop by calling hex_read
     printoffset(index, offset);
+    
+    printloop(readlength, data, hex);
     for(int i = 0; i < readlength; i++) {
-      //loop through every element of this string
-      hex_format_byte_as_hex(data[i], hex); 
-      hex_write_string(hex); 
-      // then we print out the hex pair
-      hex_write_string(" "); 
       data[i] = hex_to_printable(data[i]); //conversion to printable
       index += 1; 
     }
