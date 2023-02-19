@@ -20,7 +20,7 @@ void printdata(char data[]) {
 }
 
 // this function prints the space between hax pair and printables to reach allignment
-void printsuplement(int string_index) {
+void printsupplement(int string_index) {
   if(string_index % 16) { //this shows how many hex dig are on this line
     int i = 0;
     while(i < 16 - (string_index % 16)) {

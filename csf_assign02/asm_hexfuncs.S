@@ -2,25 +2,22 @@
 
  .section .rodata
 
- /* TODO: add read-only data such as strings here */
-
  .section .text
 
- /* TODO: add functions here */
 
 /* vim:ft=gas:
  */
 conbyte_to_hex:     /* this function will help to convert the byte to the hex */
     subq $8, %rsp    /* we align the stack here */ 
     cmpq $10, %rdi    /* check whether it's larger than 10 or smaller than 10 */
-    jl .LDigit     /* jump if less than 10 */
+    jl .LLargerTen     /* jump if less than 10 */
     addq $87, %rdi    /* when the input is more than 10, we just add the a - 19 to it*/
-    jmp .Ldone1     /* jumping right now*/
+    jmp .LWrapp     /* jumping right now*/
     
-    .LDigit:
+    .LLargerTen:
     addq $48, %rdi        /* since here is when the input is less than 10, adding the 0 */
 
-    .Ldone1:      
+    .LWrapp:      
     movq %rdi, %rax    /* we wrapped up the function */
     addq $8, %rsp      /* put the rsp to the original place */
     ret
@@ -56,7 +53,7 @@ hex_format_byte_as_hex:
 
     shrl $4, 0(%rbp)       /*for here, we shift the four bits to the right and get the first four bits*/
     movq 0(%rbp), %rdi    /*for here, we shift the four bits to the right and get the first four bits*/ 
-    call conbyte_to_hex   /*call the conversion function to do the function*/
+        call conbyte_to_hex    /*call the conversion function to do the function*/
     movq %rax, 0(%rsi, 1) 
     movq 8(%rbp), %rdi 
     jmp .LDealWithSecond    /* here we start to convert the second four bits to the hex and put it in the index 0 of the array */
@@ -74,4 +71,4 @@ hex_format_byte_as_hex:
     addq $16, %rsp       /* put the rsp to the original place */           
     addq $3, %rsi
     popq %rbp
-    ret
+    ret 
