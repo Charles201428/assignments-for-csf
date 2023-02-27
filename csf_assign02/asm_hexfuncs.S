@@ -75,5 +75,8 @@ hex_format_byte_as_hex:
 
 .globl hex_format_offset
 hex_format_offset:
- /* TODO: implement */
- ret
+    pushq %rbp
+    pushq %rbx
+    subq $16, %rsp
+    movq %rsp, %rbp  /*this is just the prelo for stack allignment */
+    movq $0, %rbx /*counter for the for loop from 1 to 8 */
