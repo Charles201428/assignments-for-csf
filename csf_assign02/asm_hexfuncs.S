@@ -80,3 +80,28 @@ hex_format_offset:
     subq $16, %rsp
     movq %rsp, %rbp  /*this is just the prelo for stack allignment */
     movq $0, %rbx /*counter for the for loop from 1 to 8 */
+    /can't do %rdp = %rdi since rbp is already set to be rsp/
+    movq %rdi, (%rbp) /*note that %rdi here is the offset, and we move it to the memory address referenced by %rbx */
+    jmp .endcase /*this is the case where the loop endcase */
+
+
+.loopcase:
+    andq $15, %rdi /*this gives last for bit of offset since 15 = 01111 */
+    call conbyte_to_hex /*take the %rdi and convert it to a hex*/
+    /*now it's in %rax, but it only has 1 byte, thus %al */
+    movq $7, %r10 
+    subq %rbx, %r10
+    movb %al, (%rsi, %r10) /* %rsi = buf, thus buf[-i+7] = %al */
+    shrq $4, (%rbp) /*offset right shift 4 bits */
+    movq (%rbp), %rdi /*for the next conbyte_to_hex call */
+    incq %rbx /* i++ */
+
+.endcase:
+    cmpq $8, %rbx /*loop through 1-7 so when %rbx is smaller than 8 we still go back to loop case */
+    jl .loopcase
+    /*otherwise end the loop and function*/
+    movb $0, 8(%rsi) /*each char has 1 byte, and %rsi (buf) has 8 chars, so this add \0 to buf[8] */
+    addq $16, %rsp
+    popq %rbx
+    popq %rbp
+    ret 
