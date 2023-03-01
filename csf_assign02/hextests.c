@@ -10,12 +10,14 @@
 // test fixture object
 typedef struct {
   char test_data_1[16];
+  char test_data_2[14];
 } TestObjs;
 
 // setup function (to create the test fixture)
 TestObjs *setup(void) {
   TestObjs *objs = malloc(sizeof(TestObjs));
-  strcpy(objs->test_data_1, "Hello, world!\n");
+  strcpy(objs->test_data_1, "Hello, world!\0");
+  strcpy(objs->test_data_2, "\x24We_eat pizza\xEB\0");
   return objs;
 }
 
@@ -53,15 +55,77 @@ void testFormatOffset(TestObjs *objs) {
 
   hex_format_offset(0xabcd1234u, buf);
   ASSERT(0 == strcmp(buf, "abcd1234"));
+
+  hex_format_offset(0L, buf);
+  ASSERT(0 == strcmp(buf, "00000000"));
+
+  /* Test 16's multiples */
+  hex_format_offset(16L, buf);
+  ASSERT(0 == strcmp(buf, "00000010"));
+
+  /* Test 16's multiples */
+  hex_format_offset(256L, buf);
+  ASSERT(0 == strcmp(buf, "00000100"));
+
+  hex_format_offset(367L, buf);
+  ASSERT(0 == strcmp(buf, "0000016f"));
+
+  hex_format_offset(68798989L, buf);
+  ASSERT(0 == strcmp(buf, "0419ca0d"));
+
+  hex_format_offset(4294967295, buf);
+  ASSERT(0 == strcmp(buf, "ffffffff"));
+
+
 }
 
 void testFormatByteAsHex(TestObjs *objs) {
   char buf[16];
   hex_format_byte_as_hex(objs->test_data_1[0], buf);
   ASSERT(0 == strcmp(buf, "48"));
+
+  hex_format_byte_as_hex(objs->test_data_1[1], buf);
+  ASSERT(0 == strcmp(buf, "65"));
+
+  hex_format_byte_as_hex(objs->test_data_1[6], buf);
+  ASSERT(0 == strcmp(buf, "20"));
+
+    /* Test the nul terminator */
+  hex_format_byte_as_hex(objs->test_data_1[14], buf);
+  ASSERT(0 == strcmp(buf, "00"));
+
+  hex_format_byte_as_hex(objs->test_data_2[1], buf);
+  ASSERT(0 == strcmp(buf, "57"));
+
+  hex_format_byte_as_hex(objs->test_data_2[3], buf);
+  ASSERT(0 == strcmp(buf, "5F"));
+
+  hex_format_byte_as_hex(objs->test_data_2[4], buf);
+  ASSERT(0 == strcmp(buf, "5F"));
+
+  hex_format_byte_as_hex(objs->test_data_2[5], buf);
+  ASSERT(0 == strcmp(buf, "61"));
+
+  hex_format_byte_as_hex(objs->test_data_2[6], buf);
+  ASSERT(0 == strcmp(buf, "65"));
+
+  hex_format_byte_as_hex(objs->test_data_2[8], buf);
+  ASSERT(0 == strcmp(buf, "70"));
+
+  hex_format_byte_as_hex(objs->test_data_2[10], buf);
+  ASSERT(0 == strcmp(buf, "7A"));
+
 }
 
 void testHexToPrintable(TestObjs *objs) {
   ASSERT('H' == hex_to_printable(objs->test_data_1[0]));
+  ASSERT('l' == hex_to_printable(objs->test_data_1[2]));
+  /* Test the unprintable character*/
   ASSERT('.' == hex_to_printable(objs->test_data_1[13]));
+  ASSERT('$' == hex_to_printable(objs->test_data_2[0]));
+  ASSERT('t' == hex_to_printable(objs->test_data_2[6]));
+    /* Test the normal character*/
+  ASSERT('p' == hex_to_printable(objs->test_data_2[8]));
+  /* Test the unprintable character*/
+  ASSERT('.' == hex_to_printable(objs->test_data_2[13]));
 }
