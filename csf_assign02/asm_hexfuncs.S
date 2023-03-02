@@ -25,28 +25,22 @@ hex_read:
 
     .globl hex_write_string
 hex_write_string:
-    pushq %rbx                  /* push callee-saved values onto the stack */
-	pushq %r12
-    subq $8, %rsp               /* align stack */
-    movq %rdi, %rbx             /* save string pointer on %rbx */
-	movq $0, %r12				/* initialize counter */
-    
-.LloopWrite:
-    cmpb $0, (%r12, %rbx)       /* see if this charcter is null-terminator */
-    je .LloopWriteDone          /* if it is, jump to the end of the function.*/
-    inc %r12                    /* increment counter */
-    jmp .LloopWrite             /* continue looping */
-
-.LloopWriteDone:
-	movq $1, %rdi               /* 1: set file descriptor = stdin */
-    movq %r12, %rdx             /* num of bytes to write = %r12 */
-	movq %rbx, %rsi      		/* move the string ptr to be written */
-	call write                  /* call write */
-	
-    addq $8, %rsp               /* align stack */ 
-	popq %r12
-    popq %rbx                   /* push callee-saved values from the stack */
-    ret 
+    movq %rsp, %rbp
+    subq $24, %rsp /* adjust stack pointer */
+    movq $0, %r10 /* set the char pointed by counter to 0 */
+    movq $0, %rdx /* set counter to 0 */
+.Lcount:
+    movb (%rdi, %rdx), %r10b /* set value of the char pointed by counter */
+    cmpb $0, %r10b /* is \0 = the char pointed by counter? */
+    je .Lout /* If yes, counter is the length of array, loop ends */
+    incq %rdx   /* If no, increase counter by 1 */
+    jmp .Lcount /* test the next char */
+.Lout:
+    leaq (%rdi), %rsi /* assign address of the array to 2nd argument*/
+    movq $1, %rdi /* write to stdout */
+    call write  /* write the string to stdout */
+    addq $24, %rsp /* restore stack pointer */
+    ret
 
 
 conbyte_to_hex:     /* this function will help to convert the byte to the hex */
@@ -148,4 +142,7 @@ hex_format_offset:
     popq %rbp
     ret 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb4c8ca (main finished)
