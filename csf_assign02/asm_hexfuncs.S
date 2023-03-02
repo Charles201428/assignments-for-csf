@@ -141,8 +141,3 @@ hex_format_offset:
     popq %rbx
     popq %rbp
     ret 
-
-<<<<<<< HEAD
-
-=======
->>>>>>> bb4c8ca (main finished)
