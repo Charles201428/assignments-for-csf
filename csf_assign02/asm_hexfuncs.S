@@ -8,39 +8,41 @@
 /* vim:ft=gas:
  */
 
-    .globl hex_read
 
+	.globl hex_read
 hex_read:
-	pushq %rbx                  /* push callee-saved values onto the stack */
-    subq $8, %rsp				/* align stack */
-	movq %rdi, %rbx				/* copy buffer pointer */
-    movq %rdi, %rsi				/* move buffer pointer to the second parameter */
-    movq $16, %rdx 				/* num of bytes to read */
-	movq $0, %rdi 				/* 0: set file descriptor = stdin */
-    call read
-	movq $0, (%rax, %rbx) 		/* set the final char to '\0' */
-    addq $8, %rsp 
-	popq %rbx                   /* push callee-saved values from the stack */
+	pushq %rbp   /*push and store the value*/          
+    subq $8, %rsp /* align the stack*/  			
+	movq %rdi, %rbp /*move the rdi to rbp*/  
+    movq %rdi, %rsi /*move the rdi to rsi*/  		
+	movq $0, %rdi /*move 0 to rdi*/  	
+    movq $16, %rdx 	/*move 16 to rdx*/  				
+    call read /*call the read function*/  
+	movq $0, (%rax, %rbp) /*move 0 to the address rax + rbp to make the end is \0*/  		
+    addq $8, %rsp /*add the 8 to the rsp*/  
+	popq %rbp /*push the value back*/                
+    ret /*return*/
+
+
+
+    .global hex_write_string
+hex_write_string:
+    subq $8, %rsp  /*align the stack*/    
+    movq $0, %r10  /*move the 0 to r10*/  
+    movq $0, %rdx  /*move the 0 to rdx*/  
+.Ladvance:
+    movb (%rdi, %rdx), %r10b /*move the value on rdi + rdx to r10b*/  
+    cmpb $0, %r10b /*compare 0 to r10b to see whether has it reached the end*/  
+    je .Lfinal /*if yes, jump to the end */  
+    incq %rdx  /*increase the rdx*/  
+    jmp .Ladvance /*repeat the loop again*/  
+.Lfinal:
+    leaq (%rdi), %rsi /*pass the address of the array to rsi*/  
+    movq $1, %rdi /*move the 1 to rdi*/  
+    call write /*call the write function*/  
+    addq $8, %rsp /*add 8 to rsp*/  
     ret
 
-    .globl hex_write_string
-hex_write_string:
-    movq %rsp, %rbp
-    subq $24, %rsp /* adjust stack pointer */
-    movq $0, %r10 /* set the char pointed by counter to 0 */
-    movq $0, %rdx /* set counter to 0 */
-.Lcount:
-    movb (%rdi, %rdx), %r10b /* set value of the char pointed by counter */
-    cmpb $0, %r10b /* is \0 = the char pointed by counter? */
-    je .Lout /* If yes, counter is the length of array, loop ends */
-    incq %rdx   /* If no, increase counter by 1 */
-    jmp .Lcount /* test the next char */
-.Lout:
-    leaq (%rdi), %rsi /* assign address of the array to 2nd argument*/
-    movq $1, %rdi /* write to stdout */
-    call write  /* write the string to stdout */
-    addq $24, %rsp /* restore stack pointer */
-    ret
 
 
 conbyte_to_hex:     /* this function will help to convert the byte to the hex */
