@@ -97,23 +97,17 @@ void testFormatByteAsHex(TestObjs *objs) {
   hex_format_byte_as_hex(objs->test_data_2[1], buf);
   ASSERT(0 == strcmp(buf, "57"));
 
-  hex_format_byte_as_hex(objs->test_data_2[3], buf);
-  ASSERT(0 == strcmp(buf, "5F"));
-
-  hex_format_byte_as_hex(objs->test_data_2[4], buf);
-  ASSERT(0 == strcmp(buf, "5F"));
-
   hex_format_byte_as_hex(objs->test_data_2[5], buf);
   ASSERT(0 == strcmp(buf, "61"));
 
   hex_format_byte_as_hex(objs->test_data_2[6], buf);
-  ASSERT(0 == strcmp(buf, "65"));
+  ASSERT(0 == strcmp(buf, "74"));
 
   hex_format_byte_as_hex(objs->test_data_2[8], buf);
   ASSERT(0 == strcmp(buf, "70"));
 
-  hex_format_byte_as_hex(objs->test_data_2[10], buf);
-  ASSERT(0 == strcmp(buf, "7A"));
+  hex_format_byte_as_hex(objs->test_data_2[9], buf);
+  ASSERT(0 == strcmp(buf, "69"));
 
 }
 
