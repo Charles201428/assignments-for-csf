@@ -33,7 +33,7 @@ hex_write_string:
 .Ladvance:
     movb (%rdi, %rdx), %r11b /*move the value on rdi + rdx to r11b*/  
     cmpb $0, %r11b /*compare 0 to r11b to see whether has it reached the end*/  
-    je .Lfinal /*if yes, jump to the end */  
+    je .Lfinal /*jump to the end when yes */  
     incq %rdx  /*increase the rdx*/  
     jmp .Ladvance /*repeat the loop again*/  
 .Lfinal:
