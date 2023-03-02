@@ -10,7 +10,7 @@
 // test fixture object
 typedef struct {
   char test_data_1[16];
-  char test_data_2[14];
+  char test_data_2[15];
 } TestObjs;
 
 // setup function (to create the test fixture)

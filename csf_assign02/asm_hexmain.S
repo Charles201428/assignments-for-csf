@@ -39,7 +39,7 @@ print_offset:
 * first three arguements are the same while having the fourth arg as ' '
 */
 print_input_chars:
-    pushq %r15 
+    pushq %rbp
     pushq %r14 
     pushq %r13 
     pushq %r12 
@@ -47,15 +47,15 @@ print_input_chars:
     movq $0, %r12 //r12 = counter
     movq %rsi, %r13 //r13 = data[17]
     movq %rdi, %r14 //r14 = readlength
-    movq %rdx, %r15 //r15 = hex[3]
+    movq %rdx, %rbp //rbp = hex[3]
     movq %rcx, %rbx //rbx = ' '
     jmp .forloopend1
 .forloopt1:
     movq $0, %rdi /* clean %rdi for later use of  %dil*/
     movb (%r13, %r12), %dil //dil = data[i]
-    movq %r15, %rsi //rsi = hex
+    movq %rbp, %rsi //rsi = hex
     call hex_format_byte_as_hex 
-    movq %r15, %rdi //rdi = formated hex
+    movq %rbp, %rdi //rdi = formated hex
     call hex_write_string 
     movq %rbx, %rdi //rdi = ' '
     call hex_write_string 
@@ -67,7 +67,7 @@ print_input_chars:
     popq %r12 
     popq %r13 
     popq %r14 
-    popq %r15 
+    popq %rbp
     ret
 
 
@@ -81,25 +81,25 @@ print_input_chars:
  */
 printsupplement:
     /* fill the empty gap*/
-    pushq %r12 /* store callee-saved register */
+    pushq %rbp /* store callee-saved register */
     pushq %r13 
     pushq %r14 
-    movq %rdi, %r12 //r12 = readlength
+    movq %rdi, %rbp //rbp = readlength
     movq %rsi, %r13 //r13 = ' '
     movq %rdx, %r14 //r14 = '   '
     jmp .Condition
 .insideloop:
     movq %r14, %rdi //rdi = '   '
     call hex_write_string 
-    addq $1, %r12 //i++
+    addq $1, %rbp //i++
 .Condition:
-    cmpq $16, %r12 //if i < 16, loop!
+    cmpq $16, %rbp //if i < 16, loop!
     jl .insideloop 
     movq %r13, %rdi //rdi = ' '
     call hex_write_string 
     popq %r14 
     popq %r13 
-    popq %r12 
+    popq %rbp
     ret
 
 
