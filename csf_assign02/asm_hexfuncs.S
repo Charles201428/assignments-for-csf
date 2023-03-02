@@ -28,11 +28,11 @@ hex_read:
     .global hex_write_string
 hex_write_string:
     subq $8, %rsp  /*align the stack*/    
-    movq $0, %r10  /*move the 0 to r10*/  
+    movq $0, %r11  /*move the 0 to r11*/  
     movq $0, %rdx  /*move the 0 to rdx*/  
 .Ladvance:
-    movb (%rdi, %rdx), %r10b /*move the value on rdi + rdx to r10b*/  
-    cmpb $0, %r10b /*compare 0 to r10b to see whether has it reached the end*/  
+    movb (%rdi, %rdx), %r11b /*move the value on rdi + rdx to r11b*/  
+    cmpb $0, %r11b /*compare 0 to r11b to see whether has it reached the end*/  
     je .Lfinal /*if yes, jump to the end */  
     incq %rdx  /*increase the rdx*/  
     jmp .Ladvance /*repeat the loop again*/  
