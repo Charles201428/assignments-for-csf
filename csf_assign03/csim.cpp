@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     cache the_cache(setNum, blockNum, byteNum, wirte_allocate, write_through);
     string LorS, address, c;
     while (cin >> LorS >> address >> c) {
-        uint32_t addressnum = stoi(address);
+        uint32_t addressnum = stol(address, NULL, 0);
         if (LorS == "l") {
             the_cache.load(addressnum);
         }

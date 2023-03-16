@@ -82,7 +82,7 @@ void cache::count_load_hit(uint32_t index, uint32_t tag){
     //increment stuff
     loadHit++;
     //note that from memory trasfering each byte's consumption is assumed to be 100/4 = 25
-    cycles += byteNum * 25;
+    cycles ++;
 
 
 }

@@ -1,21 +1,11 @@
-#include <cstdlib>
-#include <stdio.h>
-#include <string.h>
-#include <map>
-#include <vector>
 #include <iostream>
 #include <string>
-#include "cache.h"
-#include "cache.cpp"
 
-using std::string;
-using std::vector;
-using std::cin;
-using std::cout;
-using std::endl;
-using std::cerr;
+using namespace std;
+
 
 int main() {
-    int a = std::stoi('a');
+    int a = stol("0x0000AA40", nullptr, 0);
+    cout << a <<endl;
     return 0;
 }
