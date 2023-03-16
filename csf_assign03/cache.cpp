@@ -168,47 +168,46 @@ void cache::count_store_hit(uint32_t index, uint32_t tag) {
 }
 
 
+
 void cache::count_store_miss(uint32_t index, uint32_t tag) {
+	(this->storeMiss)++;
 	if (write_allocate) {
-		Set temp = data[index];
+		// we need to change the set when it is write_allocate
 		cycles = cycles + 25 * byteNum;
 		if (is_set_full(index)) {
-			//find the largest order
-			uint32_t key;
-			for (Set::iterator it = temp.begin();
-				it != temp.end();
+			// delete the block that should be evicted
+			uint32_t to_delete;
+			for (Set::iterator it = data[index].begin();
+				it != data[index].end();
 				it++) {
 				if (it->second.first == (blockNum-1)) {
 					if (it->second.second == true) {
 						cycles=cycles + byteNum * 25; 
 					}
-					key = it->first;
+					to_delete = it->first;
 				} 
 			}
-			temp.erase(key);
+			data[index].erase(to_delete);
 		}
-		// increment order
-		for (Set::iterator it = temp.begin();
-			it != temp.end();
+		// increase the counter
+		for (Set::iterator it = data[index].begin();
+			it != data[index].end();
 			it++) {
 			(it->second.first)++;
 		}
-		//add the block at tag
-		temp[tag].first = 0;
-		temp[tag].second = true;
+		// add new element
+		(data[index])[tag].first = 0;
+		(data[index])[tag].second = true;
 		cycles++;
 		if (write_through) {
-			//only concern dirty block when write-back
-			temp[tag].second = false;
+			// write to memory
+			(data[index])[tag].second = false;
 			cycles += 100;
 		}
-        //plug the set back
-        data[index] = temp;
 	} else {
-		//if no allocate, directly go to memory
+		// when it is no-write-allocate, write to memory and cache is unchanged
 		cycles = cycles + 100;
 	}
-    storeMiss++;
 }
 
 void cache::store(uint32_t address) { //similar to load
