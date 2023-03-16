@@ -174,7 +174,7 @@ void cache::count_store_miss(uint32_t index, uint32_t tag) {
                 //and smartly update the order
                 it->second.first++; 
             }
-            if (max.second == true) { //dirty
+            if (at_index[key].second == true) {
                 cycles += byteNum * 25;
             }
             at_index.erase(key);
@@ -187,10 +187,16 @@ void cache::count_store_miss(uint32_t index, uint32_t tag) {
         //insert new block
         Block newBlock;
         newBlock.first = 0;
-        newBlock.second = false;
-        at_index[tag] = newBlock;
+        newBlock.second = true;
         //access the cache anyway
         cycles++;
+        if(write_through) {
+            cycles+= byteNum * 25;
+        }
+        else {
+            newBlock.second = false;
+        }
+        at_index[tag] = newBlock;
         data[index] = at_index;
     }
     else {
