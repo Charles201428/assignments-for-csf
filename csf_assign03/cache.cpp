@@ -42,6 +42,7 @@ cache::cache(
         storeHit = 0;
         storeMiss = 0;
         cycles = 0;
+        data = CacheType(setNum, Set());
         
     }
 
@@ -49,16 +50,18 @@ bool cache::is_set_full(uint32_t index){
     //find the set at given index
     Set at_index = this->data[index];
     //test whether the size of vector of sets is >= index
-    bool whether = at_index.size() >= index;
+    bool whether = at_index.size() >= blockNum;
     return whether;
 }
 
 
 bool cache::is_hit(uint32_t index, uint32_t tag) {
     //find the set at given index
-    Set at_index = this->data[index];
+    /*
+    Set at_index = data[index];
     Set::iterator it = at_index.find(tag);
-    return it != at_index.end();
+    return it != at_index.end(); */
+    return (data[index].find(tag) != data[index].end());
 
 }
 
@@ -85,32 +88,32 @@ void cache::count_load_hit(uint32_t index, uint32_t tag){
 }
 
 void cache::count_load_miss(uint32_t index, uint32_t tag) {
-    Set at_index = this->data[index];
-    //note that from memory trasfering each byte's consumption is assumed to be 100/4 = 25
-    Set::iterator it = at_index.begin();
-    Block max = it->second;
-    uint32_t key = it->first;
-    //find the one with largest order
-    for (it; it != at_index.end(); it++) {
-        if (it->second.first < max.first) {
-            max = it->second;
-            key = it->first;
+    Set at_index = data[index];
+    if (is_set_full(index)) {
+        uint32_t key = (at_index.begin()) -> first;
+        uint32_t maxi = (at_index.begin()) -> second.first;
+        for (Set::iterator it = at_index.begin(); it != at_index.end(); it++) {
+            if (maxi < it->second.first) {
+                maxi = it->second.first;
+                key = it->first;
+            }
         }
-        //and smartly update the order
-        it->second.first++; 
+        Block temp = at_index[key];
+        if (temp.second == true) {
+            cycles += byteNum * 25;
+        }
+        at_index.erase(key);
     }
-    if (max.second == true) { //dirty byte
-        cycles += byteNum * 25;
+    else {
+        for (Set::iterator it = at_index.begin(); it != at_index.end(); it++) {
+            it->second.first++;
+        }
     }
-    //then evict max
-    at_index.erase(key);
-    //put the new block in
     Block newBlock;
     newBlock.first = 0;
     newBlock.second = false;
     at_index[tag] = newBlock;
     data[index] = at_index;
-    //increment counts
     loadMiss++;
     cycles += byteNum * 25;
 }
@@ -155,7 +158,7 @@ void cache::count_store_hit(uint32_t index, uint32_t tag) {
 }
 
 void cache::count_store_miss(uint32_t index, uint32_t tag) {
-    Set at_index = this->data[index];
+    Set at_index = Set();
     if (write_allocate) {
         Set::iterator it = at_index.begin();
         if(is_set_full(index)) {
