@@ -61,6 +61,7 @@ private:
     bool write_allocate, write_through; //LRU, FIFO (for ms3)
     int indexLen, tagLen, offsetLen; // 2^(indexlen) + setnums + bytenum = addressLen
     int totalLoad, totalStore, loadHit, loadMiss, storeHit, storeMiss, cycles;
+    int index_len, offset_len, tag_len;
 
     // the main data structure to store what do we have in the cache
     CacheType data;
