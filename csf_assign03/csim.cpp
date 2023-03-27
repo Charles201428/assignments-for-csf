@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (strcmp(argv[6], "lru") == 0 || (strcmp(argv[6], "fifo") == 0)) {
-        lru = strcmp(argv[6], "lru");
+        lru = strcmp(argv[6], "lru") == 0;
         //return 1;
     }
     else {
