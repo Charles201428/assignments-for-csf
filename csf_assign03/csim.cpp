@@ -81,6 +81,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if ((strcmp(argv[4], "no-write-allocate") == 0) && (strcmp(argv[5], "write-back") == 0)) {
+        cerr << "Invalid command line argument!" << endl;
+        return 1;
+    }
+
     cache the_cache(setNum, blockNum, byteNum, wirte_allocate, write_through, lru);
     string LorS, address, c;
     while (cin >> LorS >> address >> c) {
