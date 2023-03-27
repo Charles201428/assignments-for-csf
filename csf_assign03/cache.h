@@ -37,9 +37,8 @@ public:
         int blockNum, 
         int byteNume, 
         bool write_allocate, 
-        bool write_through
-        //bool LRU,
-        //bool FIFO, not gonna take care of this case for ms2
+        bool write_through,
+        bool lru
         //variable names are intutive
     );
 
@@ -58,7 +57,7 @@ public:
 private:
     // internal variables used to keep track of the state of the cache. Names are self-explanatory
     int setNum, blockNum, byteNum;
-    bool write_allocate, write_through; //LRU, FIFO (for ms3)
+    bool write_allocate, write_through, lru;
     int indexLen, tagLen, offsetLen; // 2^(indexlen) + setnums + bytenum = addressLen
     int totalLoad, totalStore, loadHit, loadMiss, storeHit, storeMiss, cycles;
     int index_len, offset_len, tag_len;

@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     //main goal is to handle errors/exceptions/invalid inputs here i.e, from command line argument
     
     int setNum, blockNum, byteNum;
-    bool wirte_allocate, write_through;
+    bool wirte_allocate, write_through, lru;
 
     if (argc != 7) {
         cerr << "Invalid command line argument!" << endl;
@@ -65,17 +65,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-     if (strcmp(argv[6], "lru") != 0 && (strcmp(argv[6], "fifo") != 0)) {
+    if (strcmp(argv[6], "lru") == 0 || (strcmp(argv[6], "fifo") != 0)) {
+        lru = strcmp(argv[6], "lru");
+        //return 1;
+    }
+    else {
         cerr << "Invalid command line argument!" << endl;
         return 1;
     }
+    
     
     if (!(is_power_of_two(setNum)) || !(is_power_of_two(blockNum)) || !(is_power_of_two(blockNum)) || byteNum < 4) {
         cerr << "Invalid command line argument!" << endl;
         return 1;
     }
 
-    cache the_cache(setNum, blockNum, byteNum, wirte_allocate, write_through);
+    cache the_cache(setNum, blockNum, byteNum, wirte_allocate, write_through, lru);
     string LorS, address, c;
     while (cin >> LorS >> address >> c) {
         uint32_t addressnum = stol(address, NULL, 0);

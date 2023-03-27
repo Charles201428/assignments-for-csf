@@ -29,7 +29,8 @@ cache::cache(
         int blockNum, 
         int byteNum, 
         bool write_allocate, 
-        bool write_through
+        bool write_through,
+        bool lru
     ) {
         this->setNum = setNum;
         this->byteNum = byteNum;
@@ -47,6 +48,7 @@ cache::cache(
         index_len = highest_bitSet(setNum);
         offset_len = highest_bitSet(byteNum);
         tag_len = 32 - index_len - offset_len;
+        this->lru = lru;
         
     }
 
@@ -71,10 +73,11 @@ bool cache::is_hit(uint32_t index, uint32_t tag) {
 }
 
 void cache::count_load_hit(uint32_t index, uint32_t tag){
-    //any access will triger lru order change
+    //any access will triger lru/fifo order change
     //find the set at given index
     Set at_index = this->data[index];
     //determine which counter we need to increment
+    if (lru == true) {
     int maxi = at_index[tag].first;
     for (Set::iterator it = at_index.begin(); it != at_index.end(); it++) {
         if(it->second.first < maxi) {
@@ -82,7 +85,7 @@ void cache::count_load_hit(uint32_t index, uint32_t tag){
         }
     }
     //set tag block to be 0-order
-    at_index[tag].first = 0;
+    at_index[tag].first = 0; }
     data[index] = at_index;
     //increment stuff
     loadHit++;
@@ -143,7 +146,7 @@ void cache::load(uint32_t address) {
 void cache::count_store_hit(uint32_t index, uint32_t tag) {
 	(this->storeHit)++;
 	cycles++;
-	//if (evict_type == LRU) {
+	if (lru == true) {
 		// need to renew the counter when evict type is LRU
 		uint32_t order = (data[index])[tag].first; // get timestamp
 		for (Set::iterator it = data[index].begin();
@@ -157,7 +160,7 @@ void cache::count_store_hit(uint32_t index, uint32_t tag) {
 			}
 		}
 		(data[index])[tag].first = 0;
-	//}
+	}
 	// When it is write through, we also need to to write to main memory
 	if (write_through) {
 		cycles = cycles + 100;
