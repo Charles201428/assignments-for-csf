@@ -75,7 +75,8 @@ int main(int argc, char *argv[]) {
     }
     
     
-    if (!(is_power_of_two(setNum)) || !(is_power_of_two(blockNum)) || !(is_power_of_two(blockNum)) || byteNum < 4) {
+    if (!(is_power_of_two(setNum)) || !(is_power_of_two(blockNum)) || !(is_power_of_two(byteNum)) || byteNum < 4) {
+
         cerr << "Invalid command line argument!" << endl;
         return 1;
     }

@@ -55,19 +55,19 @@ cache::cache(
 
 bool cache::is_set_full(uint32_t index){
     //find the set at given index
-    Set at_index = this->data[index];
+    //Set at_index = this->data[index];
     //test whether the size of vector of sets is >= index
-    bool whether = at_index.size() == blockNum;
-    return whether;
+    //bool whether = at_index.size() == blockNum;
+    return data[index].size() == blockNum;
 }
 
 
 bool cache::is_hit(uint32_t index, uint32_t tag) {
     //find the set at given index
     
-    Set at_index = data[index];
-    Set::iterator it = at_index.find(tag);
-    return it != at_index.end(); 
+    //Set at_index = data[index];
+    //Set::iterator it = data[index].find(tag);
+    return data[index].find(tag) != data[index].end(); 
     //return (data[index].find(tag) != data[index].end());
 
 }
@@ -75,18 +75,18 @@ bool cache::is_hit(uint32_t index, uint32_t tag) {
 void cache::count_load_hit(uint32_t index, uint32_t tag){
     //any access will triger lru/fifo order change
     //find the set at given index
-    Set at_index = this->data[index];
+    //Set at_index = this->data[index];
     //determine which counter we need to increment
     if (lru == true) {
-    int maxi = at_index[tag].first;
-    for (Set::iterator it = at_index.begin(); it != at_index.end(); it++) {
+    int maxi = data[index][tag].first;
+    for (Set::iterator it = data[index].begin(); it != data[index].end(); it++) {
         if(it->second.first < maxi) {
             it->second.first++;
         }
     }
     //set tag block to be 0-order
-    at_index[tag].first = 0; }
-    data[index] = at_index;
+    data[index][tag].first = 0; }
+    //data[index] = at_index;
     //increment stuff
     loadHit++;
     //note that from memory trasfering each byte's consumption is assumed to be 100/4 = 25
@@ -96,12 +96,12 @@ void cache::count_load_hit(uint32_t index, uint32_t tag){
 }
 
 void cache::count_load_miss(uint32_t index, uint32_t tag) {
-    Set at_index = data[index];
+    //Set at_index = data[index];
 	if (is_set_full(index)) {
 		// delete the block that should be evicted
 		uint32_t key;
-		for (Set::iterator it = at_index.begin();
-			it != at_index.end();
+		for (Set::iterator it = data[index].begin();
+			it != data[index].end();
 			it++) {
 			if (it->second.first == (blockNum-1)) {
 				if (it->second.second == true) {
@@ -110,18 +110,18 @@ void cache::count_load_miss(uint32_t index, uint32_t tag) {
 				key = it->first;
             }
         }
-		at_index.erase(key);
+		data[index].erase(key);
 	}
 	// increase the counter 
-	for (Set::iterator it = at_index.begin();
-		it != at_index.end();
+	for (Set::iterator it = data[index].begin();
+		it != data[index].end();
 		it++) {
 		(it->second.first)++;
 	}
 	// add new block
-	at_index[tag].first = 0;
-	at_index[tag].second = false;
-    data[index] = at_index;
+	data[index][tag].first = 0;
+	data[index][tag].second = false;
+    //data[index] = at_index;
 
     loadMiss++;
 	cycles += byteNum * 25;
