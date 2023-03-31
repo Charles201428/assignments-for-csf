@@ -148,24 +148,24 @@ void cache::count_store_hit(uint32_t index, uint32_t tag) {
 	cycles++;
 	if (lru == true) {
 		// need to renew the counter when evict type is LRU
-		uint32_t order = (data[index])[tag].first; // get timestamp
+		uint32_t maxi = data[index][tag].first; // get timestamp
 		for (Set::iterator it = data[index].begin();
 			it != data[index].end();
 			it++) {
 			//note that it->second.first is the order determing which  block gets evicted
             
-			if (it->second.first < order) {
+			if (it->second.first < maxi) {
 				it->second.first++;
 			}
 		}
-		(data[index])[tag].first = 0;
+		data[index][tag].first = 0;
 	}
 	// When it is write through, we also need to to write to main memory
 	if (write_through) {
 		cycles = cycles + 100;
 	} else {
 		// mark as dirty when it is write back type
-		(data[index])[tag].second = true;
+		data[index][tag].second = true;
 	}
 }
 
@@ -198,8 +198,8 @@ void cache::count_store_miss(uint32_t index, uint32_t tag) {
 			(it->second.first)++;
 		}
 		// add new element
-		(data[index])[tag].first = 0;
-		(data[index])[tag].second = true;
+		data[index][tag].first = 0;
+		data[index][tag].second = true;
 		cycles++;
 		if (write_through) {
 			// write to memory
