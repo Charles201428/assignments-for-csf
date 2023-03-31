@@ -105,7 +105,7 @@ void cache::count_load_miss(uint32_t index, uint32_t tag) {
 			it++) {
 			if (it->second.first == (blockNum-1)) {
 				if (it->second.second == true) {
-					cycles += byteNum * 25; 
+					cycles += byteNum * 25; //need to be thrown to main memory if dirty
 				}
 				key = it->first;
             }
@@ -116,7 +116,7 @@ void cache::count_load_miss(uint32_t index, uint32_t tag) {
 	for (Set::iterator it = data[index].begin();
 		it != data[index].end();
 		it++) {
-		(it->second.first)++;
+		it->second.first++;
 	}
 	// add new block
 	data[index][tag].first = 0;
@@ -152,9 +152,8 @@ void cache::count_store_hit(uint32_t index, uint32_t tag) {
 		for (Set::iterator it = data[index].begin();
 			it != data[index].end();
 			it++) {
-			// it->second denote the (tag, Block) pair for all blocks in the set
-			// it->second.first is the timestamp. Increment it for all elements whose timestamp
-			// was smaller than the original timestamp of the block that is hit
+			//note that it->second.first is the order determing which  block gets evicted
+            
 			if (it->second.first < order) {
 				it->second.first++;
 			}
