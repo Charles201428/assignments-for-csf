@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
   // TODO: open the file
 
   // TODO: use fstat to determine the size of the file
-    int fd = open(filename, O_RDONLY);
+    int fd = open(filename, O_RDWR);
     if(fd == -1) {
         perror("Error opening file");
         return 1;
@@ -149,8 +149,8 @@ int main(int argc, char **argv) {
         perror("Error getting file size");
         return 1;
     }
-    off_t file_size = sb.st_size;
-    size_t len = file_size / sizeof(int64_t);
+    size_t file_size = sb.st_size;
+    size_t length = file_size / sizeof(int64_t);
 
   // TODO: map the file into memory using mmap
     int64_t *mapped = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
 
   // Now the file is mapped into memory, and you can access it using the 'mapped' pointer.
   // TODO: sort the data!
-    merge_sort(mapped, 0, len, threshold);
+    merge_sort(mapped, 0, length, threshold);
 
   // TODO: unmap and close the file
 
