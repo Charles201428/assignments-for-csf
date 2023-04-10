@@ -122,6 +122,7 @@ void merge_sort(int64_t *arr, size_t begin, size_t end, size_t threshold) {
 
 
 
+
 int main(int argc, char **argv) {
   // check for correct number of command line arguments
   if (argc != 3) {
@@ -153,7 +154,7 @@ int main(int argc, char **argv) {
     size_t length = file_size / sizeof(int64_t);
 
   // TODO: map the file into memory using mmap
-    int64_t *mapped = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    int64_t *mapped = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (mapped == MAP_FAILED) {
         perror("Error mapping file");
         return 1;
