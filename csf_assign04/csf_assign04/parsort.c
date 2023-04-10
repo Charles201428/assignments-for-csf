@@ -1,9 +1,5 @@
-/*
- * C implementation of merge sort utilizing parallelism
- * CSF Assignment 4 
- * Bill Chen, Kit Ao
- * jchen363@jh.edu, mao2@jh.edu
- */
+//Charles Weng & Chengqian Fu
+//yweng13, cfu19
 
 #include <sys/types.h>
 #include <sys/stat.h>
