@@ -18,13 +18,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-/**
- *  A funtion that compares two elements which is used for qsort
- *  
- *  Parameters:
- *    left - a pointer pointing to the left element
- *    right - a pointer pointing to the right element
- */
+
+//wanted cmp function for qsort
 int compare_i64(const void* a, const void* b) {
   int64_t left = *(const int64_t *) a;
   int64_t right = *(const int64_t *) b;
