@@ -132,6 +132,10 @@ int main(int argc, char **argv) {
   }
   // process command line arguments
   const char *filename = argv[1];
+  if (argv[2] <= 0) {
+    fprintf(stderr, "Error: the threshold value is invalid.\n");
+    return 2;
+  }
   char *end;
   size_t threshold = (size_t) strtoul(argv[2], &end, 10);
   if (end != argv[2] + strlen(argv[2])){
