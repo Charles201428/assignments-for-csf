@@ -132,28 +132,28 @@ int main(int argc, char **argv) {
   }
   // process command line arguments
   const char *filename = argv[1];
-  if (argv[2] <= 0) {
-    fprintf(stderr, "Error: the threshold value is invalid.\n");
-    return 2;
-  }
   char *end;
   size_t threshold = (size_t) strtoul(argv[2], &end, 10);
   if (end != argv[2] + strlen(argv[2])){
-    fprintf(stderr, "Error: the threshold value is invalid.\n");
+    fprintf(stderr, "Error Invalid threshold value");
     return 2;
   }
-  // TODO: open the file
+
+  if (threshold < 1) {
+    fprintf(stderr, "Error Invalid threshold value");
+    return 2;
+  }
 
   // TODO: use fstat to determine the size of the file
     int fd = open(filename, O_RDWR);
     if(fd == -1) {
         perror("Error opening file");
-        return 3;
+        return 1;
     }
     struct stat sb;
     if(fstat(fd, &sb) == -1) {
         perror("Error getting file size");
-        return 4;
+        return 1;
     }
     size_t file_size = sb.st_size;
     size_t length = file_size / sizeof(int64_t);
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
     int64_t *mapped = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (mapped == MAP_FAILED) {
         perror("Error mapping file");
-        return 5;
+        return 1;
     }
 
   // Now the file is mapped into memory, and you can access it using the 'mapped' pointer.
@@ -175,12 +175,12 @@ int main(int argc, char **argv) {
 
     if (munmap(mapped, file_size) == -1) {
         perror("Error unmapping file");
-        return 6;
+        return 3;
     }
 
     if (close(fd) == -1) {
         perror("Error closing file");
-        return 7;
+        return 3;
     }
 
     return 0;
