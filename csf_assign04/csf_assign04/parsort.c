@@ -135,24 +135,24 @@ int main(int argc, char **argv) {
   char *end;
   size_t threshold = (size_t) strtoul(argv[2], &end, 10);
   if (end != argv[2] + strlen(argv[2])){
-    fprintf(stderr, "Error Invalid threshold value");
+    fprintf(stderr, "Error: Invalid threshold value");
     return 2;
   }
 
   if (threshold < 1) {
-    fprintf(stderr, "Error Invalid threshold value");
+    fprintf(stderr, "Error: Invalid threshold value");
     return 2;
   }
 
   // TODO: use fstat to determine the size of the file
     int fd = open(filename, O_RDWR);
     if(fd == -1) {
-        perror("Error opening file");
+        perror("Error: opening file");
         return 1;
     }
     struct stat sb;
     if(fstat(fd, &sb) == -1) {
-        perror("Error getting file size");
+        perror("Error: getting file size");
         return 1;
     }
     size_t file_size = sb.st_size;
@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
   // TODO: map the file into memory using mmap
     int64_t *mapped = mmap(NULL, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (mapped == MAP_FAILED) {
-        perror("Error mapping file");
+        perror("Error: mapping file");
         return 1;
     }
 
@@ -174,12 +174,12 @@ int main(int argc, char **argv) {
   // TODO: exit with a 0 exit code if sort was successful
 
     if (munmap(mapped, file_size) == -1) {
-        perror("Error unmapping file");
+        perror("Error: unmapping file");
         return 3;
     }
 
     if (close(fd) == -1) {
-        perror("Error closing file");
+        perror("Error: closing file");
         return 3;
     }
 
