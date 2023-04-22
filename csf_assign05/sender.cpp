@@ -7,6 +7,7 @@
 #include "connection.h"
 #include "client_util.h"
 
+using std::string;
 
 int send_helper(string& input_gotten, Connection& connectio){
   Message sentMsg;
@@ -22,15 +23,15 @@ int send_helper(string& input_gotten, Connection& connectio){
       sentMsg = {TAG_LEAVE, ""};
     } else if (input_gotten.compare("/quit") == 0) {
       sentMsg = {TAG_QUIT, "bye"};
-      conn.send(sentMsg);
-      if (conn.receive(received)) {
+      connectio.send(sentMsg);
+      if (connectio.receive(received)) {
         return 1;
       }
     } else {
       fprintf(stderr, "%s\n", "The command is not valid");
     }
   } else { 
-    sentMsg = {TAG_SENDALL, user_input};
+    sentMsg = {TAG_SENDALL, input_gotten};
   }
 
   if (sentMsg.tag != TAG_QUIT) {
