@@ -1,4 +1,5 @@
-Sample README.txt
+Charles Weng yweng13
+Chengqian Fu cfu19
 
-Eventually your report about how you implemented thread synchronization
-in the server should go here
+Charles did part of connection.cpp and did receiver.cpp
+Chengqian did part of connection.cpp and did sender.cpp
