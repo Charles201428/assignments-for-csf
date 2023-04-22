@@ -22,14 +22,14 @@ int main(int argc, char **argv) {
   username = argv[3];
 
   // TODO: connect to server
-  Connection con;
+  Connection newcon;
   con.connect(server_hostname, server_port);
   // TODO: send slogin message
   Message sentMsg = {TAG_SLOGIN, username};
-  new_connection.send(sentMsg);
+  newcon.send(sentMsg);
 
   Message response;
-  new_connection.receive(response);
+  newcon.receive(response);
   if (response.tag == TAG_ERR) { 
     fprintf(stderr, "%s", response.data.c_str());
     exit(2);
@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     while (true) {
       std::string user_input;
       std::getline(std::cin, user_input);
-      if (send(user_input, con) == 1) {
+      if (send_helper(user_input, con) == 1) {
         break;
       }
   }
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
 }
 
-int send(string& input_gotten, Connection& connectio){
+int send_helper(string& input_gotten, Connection& connectio){
   Message sentMsg;
   Message received;
   std::stringstream ssinput(input_gotten);
@@ -65,7 +65,7 @@ int send(string& input_gotten, Connection& connectio){
       sentMsg = {TAG_LEAVE, ""};
     } else if (input_gotten.find("quit") == 1) {
       sentMsg = {TAG_QUIT, "bye"};
-    } else {
+    } else
       fprintf(stderr, "%s\n", "The command is not valid");
     }
   } else { 
@@ -81,5 +81,3 @@ int send(string& input_gotten, Connection& connectio){
 
   return 0;
 }
-
-
