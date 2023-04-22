@@ -15,13 +15,17 @@ int send_helper(string& input_gotten, Connection& connectio){
   std::string sss;
   ssinput >> sss;
   if (input_gotten[0] == '/') {
-    if (input_gotten.find("join") == 1) {
+    if (input_gotten.compare("/join") == 0) {
         ssinput >> sss;
         sentMsg = {TAG_JOIN, sss};
-    } else if (input_gotten.find("leave") == 1) {
+    } else if (input_gotten.compare("/leave") == 0) {
       sentMsg = {TAG_LEAVE, ""};
-    } else if (input_gotten.find("quit") == 1) {
+    } else if (input_gotten.compare("/quit") == 0) {
       sentMsg = {TAG_QUIT, "bye"};
+      conn.send(sentMsg);
+      if (conn.receive(received)) {
+        return 1;
+      }
     } else {
       fprintf(stderr, "%s\n", "The command is not valid");
     }
