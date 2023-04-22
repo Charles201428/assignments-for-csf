@@ -22,11 +22,64 @@ int main(int argc, char **argv) {
   username = argv[3];
 
   // TODO: connect to server
-
+  Connection con;
+  con.connect(server_hostname, server_port);
   // TODO: send slogin message
+  Message sentMsg = {TAG_SLOGIN, username};
+  new_connection.send(sentMsg);
 
+  Message response;
+  new_connection.receive(response);
+  if (response.tag == TAG_ERR) { 
+    fprintf(stderr, "%s", response.data.c_str());
+    exit(2);
+  } else if (response.tag != TAG_OK) {
+    fprintf(stderr, "%s\n", "Wrong Tag");
+    exit(2);
+  }
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
+    while (true) {
+      std::string user_input;
+      std::getline(std::cin, user_input);
+      if (send(user_input, con) == 1) {
+        break;
+      }
+  }
+  con.close();
+  return 0;
+
+}
+
+int send(string& input_gotten, Connection& connectio){
+  Message sentMsg;
+  Message received;
+  std::stringstream ssinput(input_gotten);
+  std::string sss;
+  ssinput >> sss;
+  if (input_gotten[0] == '/') {
+    if (input_gotten.find("join") == 1) {
+        ssinput >> sss;
+        sentMsg = {TAG_JOIN, sss};
+    } else if (input_gotten.find("leave") == 1) {
+      sentMsg = {TAG_LEAVE, ""};
+    } else if (input_gotten.find("quit") == 1) {
+      sentMsg = {TAG_QUIT, "bye"};
+    } else {
+      fprintf(stderr, "%s\n", "The command is not valid");
+    }
+  } else { 
+    sentMsg = {TAG_SENDALL, user_input};
+  }
+
+    if (sentMsg.tag == TAG_QUIT) {
+      return;
+    } else{
+      connectio.send(sentMsg);
+      connectio.receive(received);
+    }
 
   return 0;
 }
+
+
