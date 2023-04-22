@@ -63,15 +63,11 @@ int main(int argc, char **argv) {
   newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
   Message sentMsg = {TAG_SLOGIN, username};
-  newcon.send(sentMsg);
-
-  Message response;
-  newcon.receive(response);
-  if (response.tag == TAG_ERR) { 
-    fprintf(stderr, "%s", response.data.c_str());
+  Message receivedMsg;
+  if (!newcon.send(sentMsg)) {
     exit(2);
-  } else if (response.tag != TAG_OK) {
-    fprintf(stderr, "%s\n", "Wrong Tag");
+  } 
+  if (!newcon.receive(receivedMsg)){
     exit(2);
   }
   // TODO: loop reading commands from user, sending messages to
