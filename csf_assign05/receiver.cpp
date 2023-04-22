@@ -30,7 +30,8 @@ int main(int argc, char **argv) {
   Message logmessage = Message(TAG_RLOGIN, username); 
   conn.send(logmessage);
   Message response1;
-  conn.receive(response1);
+  conn.receive(response1); 
+  //check the login status
   if (response1.tag == TAG_ERR) {
     fprintf(stderr, "%s", response1.data.c_str());
     exit(-1);
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
   conn.send(message_joined);
   Message response2;
   conn.receive(response2);
+  //check the join status
   if (response2.tag == TAG_ERR) {
     fprintf(stderr, "%s", response2.data.c_str());
     exit(-1);
@@ -71,6 +73,7 @@ int main(int argc, char **argv) {
         if (response.tag == TAG_DELIVERY) { 
           int firstco = response.data.find(":"); 
           std::string room = response.data.substr(0,firstco);
+          //see whether the message gets received normally
           if (room == room_name) {
             std::string message = response.data.substr(firstco + 1); 
             int secondco = message.find(":");
