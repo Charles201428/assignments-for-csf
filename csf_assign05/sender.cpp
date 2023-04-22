@@ -11,7 +11,7 @@ using std::string;
 
 int send_helper(string& input_gotten, Connection& connectio){
   struct Message sentMsg;
-  struct received;
+  struct Message receivedd;
   if (input_gotten[0] == '/') {
     if (input_gotten.compare("/join") == 0) {
         sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
@@ -20,7 +20,7 @@ int send_helper(string& input_gotten, Connection& connectio){
     } else if (input_gotten.compare("/quit") == 0) {
       sentMsg = {TAG_QUIT, ""};
       connectio.send(sentMsg);
-      if (connectio.receive(received)) {
+      if (connectio.receive(receivedd)) {
         return 1;
       }
     } else {
@@ -32,7 +32,7 @@ int send_helper(string& input_gotten, Connection& connectio){
 
   if (sentMsg.tag != TAG_QUIT) {
       connectio.send(sentMsg);
-      connectio.receive(received);
+      connectio.receive(receivedd);
   }
 
   return 0;
