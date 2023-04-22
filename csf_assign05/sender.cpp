@@ -10,19 +10,15 @@
 using std::string;
 
 int send_helper(string& input_gotten, Connection& connectio){
-  Message sentMsg;
-  Message received;
-  std::stringstream ssinput(input_gotten);
-  std::string sss;
-  ssinput >> sss;
+  struct Message sentMsg;
+  struct received;
   if (input_gotten[0] == '/') {
     if (input_gotten.compare("/join") == 0) {
-        ssinput >> sss;
-        sentMsg = {TAG_JOIN, sss};
+        sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
     } else if (input_gotten.compare("/leave") == 0) {
       sentMsg = {TAG_LEAVE, ""};
     } else if (input_gotten.compare("/quit") == 0) {
-      sentMsg = {TAG_QUIT, "bye"};
+      sentMsg = {TAG_QUIT, ""};
       connectio.send(sentMsg);
       if (connectio.receive(received)) {
         return 1;
