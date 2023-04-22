@@ -11,8 +11,6 @@ using std::string;
 
 void send_helper(Connection& connectio){
   while(true){
-    std::cout << "> ";
-    std::cout.flush();
     std::string input_gotten;
     std::getline(std::cin, input_gotten);
     struct Message sentmessage;
@@ -35,10 +33,6 @@ void send_helper(Connection& connectio){
       sentmessage = {TAG_SENDALL, input_gotten};
     }
 
-    if (!connectio.send(sentmessage)) {  
-      fprintf(stderr, "%s\n", "Not being able to send the message to the server");
-      exit(2);
-    }
 
     if (sentmessage.tag != TAG_QUIT) {
         connectio.send(sentmessage);
