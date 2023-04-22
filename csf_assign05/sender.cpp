@@ -13,11 +13,11 @@ int send_helper(string& input_gotten, Connection& connectio){
   struct Message sentMsg;
   struct Message receivedd;
   if (input_gotten[0] == '/') {
-    if (input_gotten.compare("/join") == 0) {
+    if (user_input.find("join") == 1) {
         sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
-    } else if (input_gotten.compare("/leave") == 0) {
+    } else if (user_input.find("leave") == 1) {
       sentMsg = {TAG_LEAVE, ""};
-    } else if (input_gotten.compare("/quit") == 0) {
+    } else if (user_input.find("quit") == 1) {
       sentMsg = {TAG_QUIT, ""};
       connectio.send(sentMsg);
       if (connectio.receive(receivedd)) {
@@ -69,9 +69,11 @@ int main(int argc, char **argv) {
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
     while (true) {
-      std::string user_input;
-      std::getline(std::cin, user_input);
-      if (send_helper(user_input, newcon) == 1) {
+      std::cout << "> ";
+      std::cout.flush();
+      std::string input_gotten;
+      std::getline(std::cin, input_gotten);
+      if (send_helper(input_gotten, newcon) == 1) {
         break;
       }
   }
