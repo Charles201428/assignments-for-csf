@@ -64,16 +64,23 @@ int main(int argc, char **argv) {
   // TODO: send slogin message
   struct Message sentMsg = {TAG_SLOGIN, username};
   struct Message receivedMsg;
+
   if (!newcon.send(sentMsg)) {
     exit(2);
   } 
   if (!newcon.receive(receivedMsg)){
     exit(2);
   }
+  if (receivedMsg.tag == TAG_ERR) { 
+    fprintf(stderr, "%s", receivedMsg.data.c_str());
+    exit(2);
+  } else if (receivedMsg.tag != TAG_OK) {
+    fprintf(stderr, "%s\n", "the wrong tag");
+    exit(2);
+  }
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
-  send_helper(newcon);
-  newcon.close();
+  send_helper(newcon) // enter the loop
   return 0;
 
 }
