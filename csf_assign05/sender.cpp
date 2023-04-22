@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   // TODO: connect to server
   Connection newcon;
-  con.connect(server_hostname, server_port);
+  newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
   Message sentMsg = {TAG_SLOGIN, username};
   newcon.send(sentMsg);
