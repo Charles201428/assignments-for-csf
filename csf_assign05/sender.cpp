@@ -9,33 +9,37 @@
 
 using std::string;
 
-int send_helper(string& input_gotten, Connection& connectio){
-  struct Message sentMsg;
-  struct Message receivedd;
-  if (input_gotten[0] == '/') {
-    if (input_gotten.find("join") == 1) {
-        sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
-    } else if (input_gotten.find("leave") == 1) {
-      sentMsg = {TAG_LEAVE, ""};
-    } else if (input_gotten.find("quit") == 1) {
-      sentMsg = {TAG_QUIT, ""};
-      connectio.send(sentMsg);
-      if (connectio.receive(receivedd)) {
-        return 1;
+int send_helper(Connection& connectio){
+  while(true){
+    std::cout << "> ";
+    std::cout.flush();
+    std::string input_gotten;
+    std::getline(std::cin, input_gotten);
+    struct Message sentMsg;
+    struct Message receivedd;
+    if (input_gotten[0] == '/') {
+      if (input_gotten.find("join") == 1) {
+          sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
+      } else if (input_gotten.find("leave") == 1) {
+        sentMsg = {TAG_LEAVE, ""};
+      } else if (input_gotten.find("quit") == 1) {
+        sentMsg = {TAG_QUIT, ""};
+        connectio.send(sentMsg);
+        if (connectio.receive(receivedd)) {
+          return;
+        }
+      } else {
+        fprintf(stderr, "%s\n", "The command is not valid");
       }
-    } else {
-      fprintf(stderr, "%s\n", "The command is not valid");
+    } else { 
+      sentMsg = {TAG_SENDALL, input_gotten};
     }
-  } else { 
-    sentMsg = {TAG_SENDALL, input_gotten};
-  }
 
-  if (sentMsg.tag != TAG_QUIT) {
-      connectio.send(sentMsg);
-      connectio.receive(receivedd);
+    if (sentMsg.tag != TAG_QUIT) {
+        connectio.send(sentMsg);
+        connectio.receive(receivedd);
+    }
   }
-
-  return 0;
 }
 
 
@@ -58,8 +62,8 @@ int main(int argc, char **argv) {
   Connection newcon;
   newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
-  Message sentMsg = {TAG_SLOGIN, username};
-  Message receivedMsg;
+  struct Message sentMsg = {TAG_SLOGIN, username};
+  struct Message receivedMsg;
   if (!newcon.send(sentMsg)) {
     exit(2);
   } 
@@ -68,15 +72,7 @@ int main(int argc, char **argv) {
   }
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
-    while (true) {
-      std::cout << "> ";
-      std::cout.flush();
-      std::string input_gotten;
-      std::getline(std::cin, input_gotten);
-      if (send_helper(input_gotten, newcon) == 1) {
-        break;
-      }
-  }
+  send_helper(newcon) 
   newcon.close();
   return 0;
 
