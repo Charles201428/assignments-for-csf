@@ -9,7 +9,7 @@
 
 using std::string;
 
-int send_helper(Connection& connectio){
+void send_helper(Connection& connectio){
   while(true){
     std::cout << "> ";
     std::cout.flush();
