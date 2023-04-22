@@ -9,12 +9,13 @@
 
 using std::string;
 
+// the send while loop
 void send_helper(Connection& connectio){
   while(true){
     std::string input_gotten;
     std::getline(std::cin, input_gotten);
-    struct Message sentmessage;
-    struct Message receivedd;
+    Message sentmessage;
+    Message receivedd;
     if (input_gotten[0] == '/') {
       if (input_gotten.find("join") == 1) {
         sentmessage = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
@@ -32,8 +33,6 @@ void send_helper(Connection& connectio){
     } else { 
       sentmessage = {TAG_SENDALL, input_gotten};
     }
-
-
     if (sentmessage.tag != TAG_QUIT) {
         connectio.send(sentmessage);
         connectio.receive(receivedd);
@@ -61,8 +60,8 @@ int main(int argc, char **argv) {
   Connection newcon;
   newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
-  struct Message Sentmessage = {TAG_SLOGIN, username};
-  struct Message receivemessage;
+  Message Sentmessage = {TAG_SLOGIN, username};
+  Message receivemessage;
 
   if (!newcon.send(Sentmessage)) {
     fprintf(stderr, "%s\n", "the error happens");
