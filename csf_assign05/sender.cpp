@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
   }
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
-  send_helper(newcon) 
+  send_helper(newcon);
   newcon.close();
   return 0;
 
