@@ -79,11 +79,11 @@ int main(int argc, char **argv) {
     while (true) {
       std::string user_input;
       std::getline(std::cin, user_input);
-      if (send_helper(user_input, con) == 1) {
+      if (send_helper(user_input, newcon) == 1) {
         break;
       }
   }
-  con.close();
+  newcon.close();
   return 0;
 
 }
