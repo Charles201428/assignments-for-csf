@@ -13,11 +13,11 @@ int send_helper(string& input_gotten, Connection& connectio){
   struct Message sentMsg;
   struct Message receivedd;
   if (input_gotten[0] == '/') {
-    if (user_input.find("join") == 1) {
+    if (input_gotten.find("join") == 1) {
         sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
-    } else if (user_input.find("leave") == 1) {
+    } else if (input_gotten.find("leave") == 1) {
       sentMsg = {TAG_LEAVE, ""};
-    } else if (user_input.find("quit") == 1) {
+    } else if (input_gotten.find("quit") == 1) {
       sentMsg = {TAG_QUIT, ""};
       connectio.send(sentMsg);
       if (connectio.receive(receivedd)) {
