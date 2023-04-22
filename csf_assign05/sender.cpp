@@ -15,16 +15,16 @@ void send_helper(Connection& connectio){
     std::cout.flush();
     std::string input_gotten;
     std::getline(std::cin, input_gotten);
-    struct Message sentMsg;
+    struct Message sentmessage;
     struct Message receivedd;
     if (input_gotten[0] == '/') {
       if (input_gotten.find("join") == 1) {
-          sentMsg = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
+        sentmessage = {TAG_JOIN, input_gotten.substr(input_gotten.find(" ") + 1, input_gotten.length() - input_gotten.find(" ") - 1)};
       } else if (input_gotten.find("leave") == 1) {
-        sentMsg = {TAG_LEAVE, ""};
+        sentmessage = {TAG_LEAVE, ""};
       } else if (input_gotten.find("quit") == 1) {
-        sentMsg = {TAG_QUIT, ""};
-        connectio.send(sentMsg);
+        sentmessage = {TAG_QUIT, ""};
+        connectio.send(sentmessage);
         if (connectio.receive(receivedd)) {
           return;
         }
@@ -32,11 +32,16 @@ void send_helper(Connection& connectio){
         fprintf(stderr, "%s\n", "The command is not valid");
       }
     } else { 
-      sentMsg = {TAG_SENDALL, input_gotten};
+      sentmessage = {TAG_SENDALL, input_gotten};
     }
 
-    if (sentMsg.tag != TAG_QUIT) {
-        connectio.send(sentMsg);
+    if (!connectio.send(sentmessage)) {  
+      fprintf(stderr, "%s\n", "Not being able to send the message to the server");
+      exit(2);
+    }
+
+    if (sentmessage.tag != TAG_QUIT) {
+        connectio.send(sentmessage);
         connectio.receive(receivedd);
     }
   }
@@ -62,25 +67,26 @@ int main(int argc, char **argv) {
   Connection newcon;
   newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
-  struct Message sentMsg = {TAG_SLOGIN, username};
-  struct Message receivedMsg;
+  struct Message Sentmessage = {TAG_SLOGIN, username};
+  struct Message receivemessage;
 
-  if (!newcon.send(sentMsg)) {
+  if (!newcon.send(Sentmessage)) {
+    fprintf(stderr, "%s\n", "the error happens");
     exit(2);
   } 
-  if (!newcon.receive(receivedMsg)){
+  if (!newcon.receive(receivemessage)){
     exit(2);
   }
-  if (receivedMsg.tag == TAG_ERR) { 
-    fprintf(stderr, "%s", receivedMsg.data.c_str());
+  if (receivemessage.tag == TAG_ERR) { 
+    fprintf(stderr, "%s", receivemessage.data.c_str());
     exit(2);
-  } else if (receivedMsg.tag != TAG_OK) {
+  } else if (receivemessage.tag != TAG_OK) {
     fprintf(stderr, "%s\n", "the wrong tag");
     exit(2);
   }
   // TODO: loop reading commands from user, sending messages to
   //       server as appropriate
-  send_helper(newcon) // enter the loop
+  send_helper(newcon); // enter the loop
   return 0;
 
 }
