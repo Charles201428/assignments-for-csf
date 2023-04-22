@@ -7,6 +7,8 @@
 #include "connection.h"
 #include "client_util.h"
 
+using std::string;
+
 int main(int argc, char **argv) {
   if (argc != 4) {
     std::cerr << "Usage: ./sender [server_address] [port] [username]\n";
@@ -23,7 +25,7 @@ int main(int argc, char **argv) {
 
   // TODO: connect to server
   Connection newcon;
-  con.connect(server_hostname, server_port);
+  newcon.connect(server_hostname, server_port);
   // TODO: send slogin message
   Message sentMsg = {TAG_SLOGIN, username};
   newcon.send(sentMsg);
@@ -42,11 +44,11 @@ int main(int argc, char **argv) {
     while (true) {
       std::string user_input;
       std::getline(std::cin, user_input);
-      if (send_helper(user_input, con) == 1) {
+      if (send_helper(user_input, newcon) == 1) {
         break;
       }
   }
-  con.close();
+  newcon.close();
   return 0;
 
 }
@@ -65,7 +67,7 @@ int send_helper(string& input_gotten, Connection& connectio){
       sentMsg = {TAG_LEAVE, ""};
     } else if (input_gotten.find("quit") == 1) {
       sentMsg = {TAG_QUIT, "bye"};
-    } else
+    } else {
       fprintf(stderr, "%s\n", "The command is not valid");
     }
   } else { 
