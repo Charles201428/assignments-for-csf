@@ -32,11 +32,11 @@ int main(int argc, char **argv) {
   Message response1;
   conn.receive(response1);
   if (response1.tag == TAG_ERR) {
-    perror(response1.data.c_str()); 
+    fprintf(stderr, "%s", response1.data.c_str());
     exit(-1);
   } 
   else if (response1.tag != TAG_OK) { 
-    perror("server's response tag is unexpected\n");
+    fprintf(stderr, "%s\n", "not normal login tag");
     exit(-1);
   }
 
@@ -45,11 +45,11 @@ int main(int argc, char **argv) {
   Message response2;
   conn.receive(response2);
   if (response2.tag == TAG_ERR) {
-    perror(response2.data.c_str()); 
+    fprintf(stderr, "%s", response2.data.c_str());
     exit(-1);
   } 
   else if (response2.tag != TAG_OK) { 
-    perror("server's response tag is unexpected\n");
+    fprintf(stderr, "%s\n", "not normal join tag");
     exit(-1);
   }
 
