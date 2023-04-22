@@ -1,4 +1,3 @@
-#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -7,12 +6,6 @@
 #include "message.h"
 #include "connection.h"
 #include "client_util.h"
-
-using std::string;
-
-
-
-
 
 
 int main(int argc, char **argv) {
@@ -34,29 +27,29 @@ int main(int argc, char **argv) {
   // TODO: send rlogin and join messages (expect a response from
   //       the server for each one)
 
-  Message login_message = Message(TAG_RLOGIN, username); //login message
-  conn.send(login_message);
+  Message logmessage = Message(TAG_RLOGIN, username); 
+  conn.send(logmessage);
   Message response1;
   conn.receive(response1);
   if (response1.tag == TAG_ERR) {
     perror(response1.data.c_str()); 
     exit(-1);
   } 
-  else if (response1.tag != TAG_OK) { //any other non-error but non-ok tag 
-    perror("unexpected server response tag\n");
+  else if (response1.tag != TAG_OK) { 
+    perror("server's response tag is unexpected\n");
     exit(-1);
   }
 
-  Message join_message = Message(TAG_JOIN, room_name); //join message
-  conn.send(join_message);
+  Message message_joined = Message(TAG_JOIN, room_name); 
+  conn.send(message_joined);
   Message response2;
   conn.receive(response2);
   if (response2.tag == TAG_ERR) {
     perror(response2.data.c_str()); 
     exit(-1);
   } 
-  else if (response2.tag != TAG_OK) { //any other non-error but non-ok tag 
-    perror("unexpected server response tag\n");
+  else if (response2.tag != TAG_OK) { 
+    perror("server's response tag is unexpected\n");
     exit(-1);
   }
 
@@ -69,27 +62,24 @@ int main(int argc, char **argv) {
   bool status = true;
   while (status) {
       Message response;
-      if (!conn.receive(response)) { //if no message received successfully
-        if (conn.get_last_result() == Connection::EOF_OR_ERROR) { //check the last result
-          exit(-1);
+      if (!conn.receive(response)) { 
+        if (conn.get_last_result() == Connection::EOF_OR_ERROR) { 
         } else {
-          perror("message invalid format\n"); 
+          perror("the formate is invalid\n"); 
         }
       } else {
-        if (response.tag == TAG_DELIVERY) { //if it got delivered
-          int first_colon_index = response.data.find(":"); //find the first colon followed by room
-          std::string room = response.data.substr(0,first_colon_index);
-          if (room == room_name) { //whether the same room
-            std::string message = response.data.substr(first_colon_index + 1); 
-            int second_colon_index = message.find(":");
-            printf("%s", (message.substr(0, second_colon_index) + ": " + message.substr(second_colon_index + 1)).c_str()); 
+        if (response.tag == TAG_DELIVERY) { 
+          int firstco = response.data.find(":"); 
+          std::string room = response.data.substr(0,firstco);
+          if (room == room_name) {
+            std::string message = response.data.substr(firstco + 1); 
+            int secondco = message.find(":");
+            printf("%s", (message.substr(0, secondco) + ": " + message.substr(secondco + 1)).c_str()); 
           } 
         } else {
-          perror("unexpected server response tag\n"); //print error if it's other tags
+          perror("server's response tag is unexpected\n");
         }
       }
    }
    return 0;
-}
-
-
+ }
