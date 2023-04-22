@@ -58,23 +58,19 @@ bool Connection::send(const Message &msg) {
   // TODO: send a message
   // return true if successful, false if not
   // make sure that m_last_result is set appropriately
-  char* converted_string;
-  std::string concated = msg.tag + ':' + msg.data;
-    size_t strsize = concated.length();
-    char* encoded = new char[strsize + 2];
-    memcpy(encoded, concated.c_str(), strsize);
-    encoded[strsize] = '\n';
-    encoded[strsize+1] = '\0';
-    return encoded;
-  char* encoded = msg.createEncoded(); // convert struct Message to char*
-  size_t n = strlen(encoded);
-  if (rio_writen(m_fd, encoded, n) != (ssize_t) n) { // write message to server
+  string overall = msg.tag + ':' + msg.data;
+  char* converted_string = new char[overall.length() + 2];
+  memcpy(converted_string, overall.c_str(), overall.length());
+  converted_string[overall.length()] = '\n';
+  converted_string[overall.length() + 1] = '\0';
+  //now let's try to write message 
+  if (rio_writen(m_fd, converted_string, strlen(converted_string)) != (ssize_t) strlen(converted_string)) { 
+    delete [] converted_string;
     m_last_result = EOF_OR_ERROR;
-    delete[] encoded;
     return false;
   }
+  delete[] converted_string;
   m_last_result = SUCCESS;
-  delete[] encoded;
   return true;
 }
 
