@@ -71,7 +71,7 @@ int send_helper(string& input_gotten, Connection& connectio){
       fprintf(stderr, "%s\n", "The command is not valid");
     }
   } else { 
-    sentMsg = {TAG_SENDALL, user_input};
+    sentMsg = {TAG_SENDALL, input_gotten};
   }
 
     if (sentMsg.tag == TAG_QUIT) {
