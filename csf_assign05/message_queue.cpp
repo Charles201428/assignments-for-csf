@@ -1,13 +1,25 @@
 #include <cassert>
 #include <ctime>
 #include "message_queue.h"
+#include "csapp.h"
+#include "message.h"
+#include <semaphore.h>
+#include <pthread.h>
+#include "guard.h"
+
+
 
 MessageQueue::MessageQueue() {
   // TODO: initialize the mutex and the semaphore
+  pthread_mutex_init(&m_lock, NULL);
+  Sem_init(&m_avail, 0, 0);
+
 }
 
 MessageQueue::~MessageQueue() {
   // TODO: destroy the mutex and the semaphore
+  pthread_mutex_destroy(&m_lock);
+  sem_destroy(&m_avail);
 }
 
 void MessageQueue::enqueue(Message *msg) {
@@ -15,6 +27,14 @@ void MessageQueue::enqueue(Message *msg) {
 
   // be sure to notify any thread waiting for a message to be
   // available by calling sem_post
+
+  //keep these variables inside the local scope
+  {
+    Guard g(m_lock);
+    m_messages.push_back(msg);
+  }
+  sem_post(&m_avail);
+
 }
 
 Message *MessageQueue::dequeue() {
@@ -32,7 +52,19 @@ Message *MessageQueue::dequeue() {
   // TODO: call sem_timedwait to wait up to 1 second for a message
   //       to be available, return nullptr if no message is available
 
+  if (sem_timedwait(&m_avail, &ts) != 0) {
+    return nullptr;
+  }
+
   // TODO: remove the next message from the queue, return it
-  Message *msg = nullptr;
-  return msg;
+
+  {
+    Guard g(m_lock);
+    Message* msg = m_messages.front();
+    m_messages.pop_front();
+    return msg;
+  }
+
+
+  
 }
