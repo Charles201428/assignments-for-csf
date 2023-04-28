@@ -28,7 +28,7 @@ void Room::broadcast_message(const std::string &sender_username, const std::stri
   std::string data = room_name + ":" + sender_username + ":" + message_text;
   for (UserSet::iterator it = members.begin(); it != members.end(); ++it) {
     User* now = *it;
-    now->mqueue.enqueue(new Message(TAG_DELIVERY, data););
+    now->mqueue.enqueue(new Message(TAG_DELIVERY, data));
   }
 }
 #include "guard.h"
@@ -61,6 +61,6 @@ void Room::broadcast_message(const std::string &sender_username, const std::stri
   std::string data = room_name + ":" + sender_username + ":" + message_text;
   for (UserSet::iterator it = members.begin(); it != members.end(); ++it) {
     User* now = *it;
-    now->mqueue.enqueue(new Message(TAG_DELIVERY, data););
+    now->mqueue.enqueue(new Message(TAG_DELIVERY, data));
   }
 }

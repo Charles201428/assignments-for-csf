@@ -36,7 +36,7 @@ struct ConnInfo{
 };
 namespace {
 
-bool is_valid_message(Message &msg) {
+bool check_validity_of_message(Message &msg) {
   //only proceed in the following case
   if ((msg.tag == TAG_DELIVERY) || (msg.tag == TAG_EMPTY) 
       || (msg.tag == TAG_ERR) || (msg.tag == TAG_JOIN)
@@ -51,13 +51,39 @@ bool is_valid_message(Message &msg) {
       if (msg.data.at(i) == '\n') {
         return false;
       }
-    }
+    } 
     return true;
   }
 
   return false;
 }
 
+void communicate_with_receiver(User *user, Connection *connection, Server *srv) {
+  Message join_message;
+  connection->receive(join_message);
+  Room *chat_room;
+  Message * current_msg;
+  if (join_message.tag != TAG_JOIN) {
+    Message error_msg(TAG_ERR, "invalid join message");
+    connection->send(error_msg);
+  } else {
+    chat_room = srv->find_or_create_room(join_message.data);
+    chat_room->add_member(user);
+    Message login_success(TAG_OK, "joined room " + join_message.data);
+    connection->send(login_success);
+  }
+  bool keep_running = true;
+  while (keep_running) {
+  // Wait for message queue to be non-empty
+    current_msg = user->mqueue.dequeue();
+    if ((current_msg != nullptr) && !(connection->send(*current_msg))) {
+      chat_room->remove_member(user);
+      keep_running = false;
+    } else {
+    delete current_msg;
+    }
+  }
+}
 
 
 
