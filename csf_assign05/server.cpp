@@ -26,6 +26,33 @@
 
 namespace {
 
+bool is_valid_message(Message &msg) {
+  //only proceed in the following case
+  if ((msg.tag == TAG_DELIVERY) || (msg.tag == TAG_EMPTY) 
+      || (msg.tag == TAG_ERR) || (msg.tag == TAG_JOIN)
+      || (msg.tag == TAG_LEAVE) || (msg.tag == TAG_OK)
+      || (msg.tag == TAG_QUIT) || (msg.tag == TAG_RLOGIN)
+      || (msg.tag == TAG_SENDALL) || (msg.tag == TAG_SENDUSER)
+      || (msg.tag == TAG_SLOGIN)) {
+    
+
+    //return false if newline char detected
+    for (int i = 0; i < static_cast<int>(msg.data.length()); i++) {
+      if (msg.data.at(i) == '\n') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
+}
+
+
+
+
+
+
 void *worker(void *arg) {
   pthread_detach(pthread_self());
 
