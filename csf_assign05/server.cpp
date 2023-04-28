@@ -88,7 +88,7 @@ void process_receiver_messages(User *user, Connection *connection, Room *chat_ro
   }
 }
 
-void communicate_with_receiver(User *user, Connection *connection, Server *srv) {
+void chat_with_receiver(User *user, Connection *connection, Server *srv) {
   Message join_message;
   connection->receive(join_message);
   Room *chat_room = nullptr;
@@ -128,24 +128,24 @@ void handle_sendall(Connection *connection, Room *chat_room, User *user, Message
     connection->send(error_msg);
   } else {
     chat_room->broadcast_message(user->username, current_message.data);
-    Message sent_msg(TAG_OK, "sent message");
+    Message sent_msg(TAG_OK, "msg sent");
     connection->send(sent_msg);
   }
 }
 
-void converse_with_sender(User *user, Connection *connection, Server *srv) {
+void chat_with_sender(User *user, Connection *connection, Server *srv) {
   Room *chat_room = nullptr;
   Message current_message;
   bool keep_running = true;
 
   while (keep_running) {
     if (!connection->receive(current_message)) {
-      Message error_msg(TAG_ERR, "could not receive message or message invalid");
+      Message error_msg(TAG_ERR, "not received");
       connection->send(error_msg);
     }
 
     if (!check_validity_of_message(current_message)) {
-      Message error_msg(TAG_ERR, "invalid message");
+      Message error_msg(TAG_ERR, "invalid");
       connection->send(error_msg);
     }
     else if (current_message.tag == TAG_JOIN) {
@@ -162,7 +162,7 @@ void converse_with_sender(User *user, Connection *connection, Server *srv) {
       handle_sendall(connection, chat_room, user, current_message);
     }
     else {
-      Message error_msg(TAG_ERR, "unrecognized command");
+      Message error_msg(TAG_ERR, "unidentified input");
       connection->send(error_msg);
     }
   }
@@ -172,29 +172,50 @@ void converse_with_sender(User *user, Connection *connection, Server *srv) {
 
 
 
-void *worker(void *arg) {
+void *thread_worker(void *args) {
   pthread_detach(pthread_self());
 
-  // TODO: use a static cast to convert arg from a void* to
-  //       whatever pointer type describes the object(s) needed
-  //       to communicate with a client (sender or receiver)
+  // Extract argument data
+  ConnInfo *input = static_cast<ConnInfo *>(args);
+  Connection *connection = input->new_connection;
+  Server *srv = input->server;
+  delete input;
 
-  // TODO: read login message (should be tagged either with
-  //       TAG_SLOGIN or TAG_RLOGIN), send response
+  Message login_message;
+  connection->receive(login_message);
+  User participant(login_message.data);
+  if (login_message.tag == TAG_RLOGIN) {
+    participant.receiver = true;
+  } else if (login_message.tag == TAG_SLOGIN) {
+    participant.receiver = false;
+  } else {
+    Message error_msg(TAG_ERR, "incorrect login message");
+    connection->send(error_msg);
+    delete connection;
+    return nullptr;
+  }
+  Message login_success(TAG_OK, "successfully logged in");
+  connection->send(login_success);
 
-  // TODO: depending on whether the client logged in as a sender or
-  //       receiver, communicate with the client (implementing
-  //       separate helper functions for each of these possibilities
-  //       is a good idea)
+  if (participant.receiver) {
+    chat_with_receiver(&participant, connection, srv); 
+  } else {
+    chat_with_sender(&participant, connection, srv);
+  }
 
+  delete connection;
   return nullptr;
 }
+
+
+
 
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Server member function implementation
 ////////////////////////////////////////////////////////////////////////
+
 
 
 Server::Server(int port)

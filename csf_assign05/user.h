@@ -9,7 +9,7 @@ struct User {
 
   // queue of pending messages awaiting delivery
   MessageQueue mqueue;
-
+  bool receiver;
   User(const std::string &username) : username(username) { }
 };
 
