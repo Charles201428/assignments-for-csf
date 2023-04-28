@@ -50,27 +50,44 @@ void *worker(void *arg) {
 // Server member function implementation
 ////////////////////////////////////////////////////////////////////////
 
+
 Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
-  // TODO: initialize mutex
+  pthread_mutex_init(&m_lock, NULL);
 }
 
 Server::~Server() {
-  // TODO: destroy mutex
+  pthread_mutex_destroy(&m_lock);
 }
 
 bool Server::listen() {
-  // TODO: use open_listenfd to create the server socket, return true
-  //       if successful, false if not
+  m_ssock = open_listenfd((char*) std::to_string(m_port).c_str());;
+  if (m_ssock < 0) {
+    return false;
+  }
+  return true;
 }
 
 void Server::handle_client_requests() {
-  // TODO: infinite loop calling accept or Accept, starting a new
-  //       pthread for each connected client
+  while(true) {
+    int clientfd = Accept(m_ssock, nullptr, nullptr);
+    ConnInfo* info = new ConnInfo(new Connection(clientfd), this);
+
+    pthread_t thr_id;
+    if (pthread_create(&thr_id, nullptr, worker, info) != 0) {
+      fprintf(stderr, "%s\n","pthread creation failed");
+      exit(2);
+    }
+  }
 }
 
 Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
+  Guard g(m_lock);
+  if (m_rooms.find(room_name) == m_rooms.end()) {
+    m_rooms[room_name] = new Room(room_name);
+  }
+  return m_rooms[room_name];
 }
