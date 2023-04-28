@@ -253,8 +253,12 @@ Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
   Guard g(m_lock);
-  if (m_rooms.find(room_name) == m_rooms.end()) {
-    m_rooms[room_name] = new Room(room_name);
+  for (RoomMap::iterator it = m_rooms.begin(); it != m_rooms.end(); it++) {
+    if (it->first == room_name) {
+      return it->second;
+    }
   }
-  return m_rooms[room_name];
+  Room * updatedRoom = new Room(room_name);
+  m_rooms.insert({room_name,  updatedRoom});
+  return  updatedRoom;
 }
