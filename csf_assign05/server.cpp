@@ -58,11 +58,7 @@ bool check_validity_of_message(Message &msg) {
   return false;
 }
 
-void communicate_with_receiver(User *user, Connection *connection, Server *srv) {
-  Message join_message;
-  connection->receive(join_message);
-  Room *chat_room;
-  Message * current_msg;
+void handle_join_receiver(User *user, Connection *connection, Room *&chat_room, Server *srv, Message &join_message) {
   if (join_message.tag != TAG_JOIN) {
     Message error_msg(TAG_ERR, "invalid join message");
     connection->send(error_msg);
@@ -72,15 +68,99 @@ void communicate_with_receiver(User *user, Connection *connection, Server *srv) 
     Message login_success(TAG_OK, "joined room " + join_message.data);
     connection->send(login_success);
   }
+}
+
+void process_receiver_messages(User *user, Connection *connection, Room *chat_room) {
+  Message *current_msg;
   bool keep_running = true;
+
   while (keep_running) {
-  // Wait for message queue to be non-empty
     current_msg = user->mqueue.dequeue();
     if ((current_msg != nullptr) && !(connection->send(*current_msg))) {
       chat_room->remove_member(user);
       keep_running = false;
     } else {
-    delete current_msg;
+      delete current_msg;
+    }
+  }
+}
+
+void communicate_with_receiver(User *user, Connection *connection, Server *srv) {
+  Message join_message;
+  connection->receive(join_message);
+  Room *chat_room = nullptr;
+
+  handle_join_receiver(user, connection, chat_room, srv, join_message);
+  process_receiver_messages(user, connection, chat_room);
+}
+
+
+
+
+void handle_join(Connection *connection, Message &current_message, Room *&chat_room, Server *srv) {
+  chat_room = srv->find_or_create_room(current_message.data);
+  Message login_success(TAG_OK, "joined room");
+  connection->send(login_success);
+}
+
+void handle_leave(Connection *connection, Room *&chat_room) {
+  if (chat_room == nullptr) {
+    Message error_msg(TAG_ERR, "not in a room yet");
+    connection->send(error_msg);
+  } else {
+    Message exit_room(TAG_OK, "left room");
+    connection->send(exit_room);
+    chat_room = nullptr;
+  }
+}
+
+void handle_quit(Connection *connection) {
+  Message quit_msg(TAG_OK, "quitting");
+  connection->send(quit_msg);
+}
+
+void handle_sendall(Connection *connection, Room *chat_room, User *user, Message &current_message) {
+  if (chat_room == nullptr) {
+    Message error_msg(TAG_ERR, "not in a room yet");
+    connection->send(error_msg);
+  } else {
+    chat_room->broadcast_message(user->username, current_message.data);
+    Message sent_msg(TAG_OK, "sent message");
+    connection->send(sent_msg);
+  }
+}
+
+void converse_with_sender(User *user, Connection *connection, Server *srv) {
+  Room *chat_room = nullptr;
+  Message current_message;
+  bool keep_running = true;
+
+  while (keep_running) {
+    if (!connection->receive(current_message)) {
+      Message error_msg(TAG_ERR, "could not receive message or message invalid");
+      connection->send(error_msg);
+    }
+
+    if (!check_validity_of_message(current_message)) {
+      Message error_msg(TAG_ERR, "invalid message");
+      connection->send(error_msg);
+    }
+    else if (current_message.tag == TAG_JOIN) {
+      handle_join(connection, current_message, chat_room, srv);
+    }
+    else if (current_message.tag == TAG_LEAVE) {
+      handle_leave(connection, chat_room);
+    }
+    else if (current_message.tag == TAG_QUIT) {
+      handle_quit(connection);
+      keep_running = false;
+    }
+    else if (current_message.tag == TAG_SENDALL) {
+      handle_sendall(connection, chat_room, user, current_message);
+    }
+    else {
+      Message error_msg(TAG_ERR, "unrecognized command");
+      connection->send(error_msg);
     }
   }
 }
