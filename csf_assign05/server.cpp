@@ -172,7 +172,7 @@ void chat_with_sender(User *user, Connection *connection, Server *srv) {
 
 
 
-void *thread_worker(void *args) {
+void *worker(void *args) {
   pthread_detach(pthread_self());
 
   // Extract argument data
