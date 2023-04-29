@@ -49,76 +49,13 @@ class TerminiationException: public std::exception {
 
 namespace {
 
-void chat_with_sender(Connection* new_connection, Server* thisServer, std::string username);
 
-void chat_with_receiver(Connection* new_connection, Server* server, User* new_user);
 
-std::string rtrim(const std::string &s);
-
-void *worker(void *arg) {
-  pthread_detach(pthread_self());
-  ConnInfo* info = static_cast<ConnInfo *>(arg);
-  Server* thisServer = info->server;
-  Connection* new_connection = info->new_connection;
-  Message received;
-  User* new_user = new User("");
-
-  try {
-    new_connection->receive(received);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
-
-    if (new_connection->get_last_result() == Connection::INVALID_MSG) {
-      Message error_message = {TAG_ERR,"wrong format"};
-      new_connection->send(error_message);
-   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
-    }
-
-    if (received.data.find("\n") == std::string::npos) {
-        Message error_message = {TAG_ERR,"wrong format"};
-        new_connection->send(error_message);
-        if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-          throw TerminiationException();
-        }
-        throw TerminiationException();
-    } else {
-        if (received.data.length() <= 1 || (rtrim(received.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
-        Message error_message = {TAG_ERR,"wrong tag"};
-        new_connection->send(error_message);
-        if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-          throw TerminiationException();
-        }
-        throw TerminiationException();
-        } else{
-            new_user->username = rtrim(received.data);
-            Message ok_message = {TAG_OK,""};
-            new_connection->send(ok_message);
-            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-              throw TerminiationException();
-            }
-        }
-    }
-
-    if (received.tag == TAG_SLOGIN) {
-      chat_with_sender(new_connection, thisServer, new_user->username);
-    } else if (received.tag == TAG_RLOGIN) {
-      chat_with_receiver(new_connection, thisServer, new_user);
-    } else {
-      sentErrorMessage(new_connection, "invalid login tag");
-      throw TerminiationException();
-    }
-  } catch (TerminiationException& ex) {
-    delete new_user;
-    return nullptr;
-  }
-  delete new_user;
-return nullptr;
+std::string rtrim(const std::string &s) {
+  size_t end = s.find_last_not_of("\n\r\t\f\v");
+  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
 }
 
-}
 
 void chat_with_sender(Connection* new_connection, Server* thisServer, std::string username) {
   Message response;
@@ -137,7 +74,7 @@ void chat_with_sender(Connection* new_connection, Server* thisServer, std::strin
   }
     } else {
       if (response.tag == TAG_JOIN) {
-        if (!response.data.find("\n") == std::string::npos) {
+        if (response.data.find("\n") != std::string::npos) {
           current_room = thisServer->find_or_create_room(rtrim(response.data));
             Message ok_message = {TAG_OK,""};
             new_connection->send(ok_message);
@@ -250,10 +187,80 @@ void chat_with_receiver(Connection* new_connection, Server* server, User* new_us
   room->remove_member(new_user);
 }
 
-std::string rtrim(const std::string &s) {
-  size_t end = s.find_last_not_of("\n\r\t\f\v");
-  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+
+
+
+
+void *worker(void *arg) {
+  pthread_detach(pthread_self());
+  ConnInfo* info = static_cast<ConnInfo *>(arg);
+  Server* thisServer = info->server;
+  Connection* new_connection = info->new_connection;
+  Message received;
+  User* new_user = new User("");
+
+  try {
+    new_connection->receive(received);
+  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+    throw TerminiationException();
+  }
+
+    if (new_connection->get_last_result() == Connection::INVALID_MSG) {
+      Message error_message = {TAG_ERR,"wrong format"};
+      new_connection->send(error_message);
+      if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+        throw TerminiationException();
+      }
+    }
+
+    if (received.data.find("\n") == std::string::npos) {
+        Message error_message = {TAG_ERR,"wrong format"};
+        new_connection->send(error_message);
+        if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+          throw TerminiationException();
+        }
+        throw TerminiationException();
+    } else {
+        if (received.data.length() <= 1 || (rtrim(received.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
+        Message error_message = {TAG_ERR,"wrong tag"};
+        new_connection->send(error_message);
+        if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+          throw TerminiationException();
+        }
+        throw TerminiationException();
+        } else{
+            new_user->username = rtrim(received.data);
+            Message ok_message = {TAG_OK,""};
+            new_connection->send(ok_message);
+            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+              throw TerminiationException();
+            }
+        }
+    }
+
+    if (received.tag == TAG_SLOGIN) {
+      chat_with_sender(new_connection, thisServer, new_user->username);
+    } else if (received.tag == TAG_RLOGIN) {
+      chat_with_receiver(new_connection, thisServer, new_user);
+    } else {
+      Message error_message = {TAG_ERR,"wrong tag"};
+      new_connection->send(error_message);
+      if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+        throw TerminiationException();
+      }
+      throw TerminiationException();
+    }
+  } catch (TerminiationException& ex) {
+    delete new_user;
+    return nullptr;
+  }
+  delete new_user;
+return nullptr;
 }
+
+}
+
+
  
 
 ////////////////////////////////////////////////////////////////////////
