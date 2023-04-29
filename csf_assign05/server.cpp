@@ -50,18 +50,17 @@ class TerminiationException: public std::exception {
 namespace {
 
 
-
-std::string rtrim(const std::string &s) {
+std::string right_trim(const std::string &s) {
   size_t end = s.find_last_not_of("\n\r\t\f\v");
   return (end == std::string::npos) ? "" : s.substr(0, end + 1);
 }
 
 
-void chat_with_sender(Connection* new_connection, Server* thisServer, std::string username) {
-  Message response;
+void chat_with_sender(Connection* new_connection, Server* server, std::string username) {
+  Message curr_mes;
   Room* current_room = nullptr;
   while (true) {
-    new_connection->receive(response);
+    new_connection->receive(curr_mes);
     if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
     throw TerminiationException();
     }
@@ -73,9 +72,9 @@ void chat_with_sender(Connection* new_connection, Server* thisServer, std::strin
     throw TerminiationException();
   }
     } else {
-      if (response.tag == TAG_JOIN) {
-        if (response.data.find("\n") != std::string::npos) {
-          current_room = thisServer->find_or_create_room(rtrim(response.data));
+      if (curr_mes.tag == TAG_JOIN) {
+        if (curr_mes.data.find("\n") != std::string::npos) {
+          current_room = server->find_or_create_room(right_trim(curr_mes.data));
             Message ok_message = {TAG_OK,""};
             new_connection->send(ok_message);
             if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -84,63 +83,63 @@ void chat_with_sender(Connection* new_connection, Server* thisServer, std::strin
         } else {
             Message error_message = {TAG_ERR,"wrong room format"};
             new_connection->send(error_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+              throw TerminiationException();
+            }
         }
       }
-      else if (response.tag == TAG_LEAVE) {
+      else if (curr_mes.tag == TAG_LEAVE) {
         if (current_room == nullptr) {
           Message error_message = {TAG_ERR,"wrong"};
           new_connection->send(error_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+          if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+            throw TerminiationException();
+          }
 
         } else {
           current_room = nullptr;
           Message ok_message = {TAG_OK,""};
           new_connection->send(ok_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+          if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+            throw TerminiationException();
+          }
         }
-      } else if (response.tag == TAG_SENDALL) {
+      } else if (curr_mes.tag == TAG_SENDALL) {
         if (current_room == nullptr) {
             Message error_message = {TAG_ERR,"don't join a room"};
             new_connection->send(error_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+              throw TerminiationException();
+            }
         } else {
-          if (response.data.find("\n") == std::string::npos) {
+          if (curr_mes.data.find("\n") == std::string::npos) {
             Message error_message = {TAG_ERR,"wrong formate"};
             new_connection->send(error_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+              throw TerminiationException();
+            }
           } else {
-            current_room->broadcast_message(username, rtrim(response.data));
+            current_room->broadcast_message(username, right_trim(curr_mes.data));
             Message ok_message = {TAG_OK,""};
             new_connection->send(ok_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+            if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+              throw TerminiationException();
+            }
           }
         }
-      } else if (response.tag == TAG_QUIT) {
+      } else if (curr_mes.tag == TAG_QUIT) {
         Message ok_message = {TAG_OK,""};
         new_connection->send(ok_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+        if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+          throw TerminiationException();
+        }
         throw TerminiationException();
       } else {
           Message error_message = {TAG_ERR,"wrong tag pops up"};
           new_connection->send(error_message);
-  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
-    throw TerminiationException();
-  }
+          if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+            throw TerminiationException();
+          }
       }
     }
   }
@@ -149,8 +148,8 @@ void chat_with_sender(Connection* new_connection, Server* thisServer, std::strin
 
 
 void chat_with_receiver(Connection* new_connection, Server* server, User* new_user) {
-  Message join_message;
-  if (!new_connection->receive(join_message)) {
+  Message join_meg;
+  if (!new_connection->receive(join_meg)) {
     Message error_message = {TAG_ERR,"something went wrong"};
     new_connection->send(error_message);
   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -158,7 +157,7 @@ void chat_with_receiver(Connection* new_connection, Server* server, User* new_us
   }
     throw TerminiationException();
   }
-  if (join_message.tag != TAG_JOIN || join_message.data.find("\n") == std::string::npos) {
+  if (join_meg.tag != TAG_JOIN || join_meg.data.find("\n") == std::string::npos) {
     Message error_message = {TAG_ERR,"wrong format"};
     new_connection->send(error_message);
   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -166,7 +165,7 @@ void chat_with_receiver(Connection* new_connection, Server* server, User* new_us
   }
     throw TerminiationException();
   }
-  Room *room = server->find_or_create_room(rtrim(join_message.data));
+  Room *room = server->find_or_create_room(right_trim(join_meg.data));
   //add user to room
   room->add_member(new_user);
   new_connection->send(Message(TAG_OK, ""));
@@ -189,18 +188,15 @@ void chat_with_receiver(Connection* new_connection, Server* server, User* new_us
 
 
 
-
-
 void *worker(void *arg) {
   pthread_detach(pthread_self());
-  ConnInfo* info = static_cast<ConnInfo *>(arg);
-  Server* thisServer = info->server;
-  Connection* new_connection = info->new_connection;
-  Message received;
+  ConnInfo* conn = static_cast<ConnInfo *>(arg);
+  Server* Server = conn->server;
+  Connection* new_connection = conn->new_connection;
+  Message login_mes;
   User* new_user = new User("");
-
   try {
-    new_connection->receive(received);
+    new_connection->receive(login_mes);
   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
     throw TerminiationException();
   }
@@ -213,7 +209,7 @@ void *worker(void *arg) {
       }
     }
 
-    if (received.data.find("\n") == std::string::npos) {
+    if (login_mes.data.find("\n") == std::string::npos) {
         Message error_message = {TAG_ERR,"wrong format"};
         new_connection->send(error_message);
         if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -221,7 +217,7 @@ void *worker(void *arg) {
         }
         throw TerminiationException();
     } else {
-        if (received.data.length() <= 1 || (rtrim(received.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
+        if (login_mes.data.length() <= 1 || (right_trim(login_mes.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
         Message error_message = {TAG_ERR,"wrong tag"};
         new_connection->send(error_message);
         if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -229,7 +225,7 @@ void *worker(void *arg) {
         }
         throw TerminiationException();
         } else{
-            new_user->username = rtrim(received.data);
+            new_user->username = right_trim(login_mes.data);
             Message ok_message = {TAG_OK,""};
             new_connection->send(ok_message);
             if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -238,10 +234,10 @@ void *worker(void *arg) {
         }
     }
 
-    if (received.tag == TAG_SLOGIN) {
-      chat_with_sender(new_connection, thisServer, new_user->username);
-    } else if (received.tag == TAG_RLOGIN) {
-      chat_with_receiver(new_connection, thisServer, new_user);
+    if (login_mes.tag == TAG_SLOGIN) {
+      chat_with_sender(new_connection, Server, new_user->username);
+    } else if (login_mes.tag == TAG_RLOGIN) {
+      chat_with_receiver(new_connection, Server, new_user);
     } else {
       Message error_message = {TAG_ERR,"wrong tag"};
       new_connection->send(error_message);
@@ -250,12 +246,12 @@ void *worker(void *arg) {
       }
       throw TerminiationException();
     }
-  } catch (TerminiationException& ex) {
+  } catch (TerminiationException& expception) {
     delete new_user;
     return nullptr;
   }
   delete new_user;
-return nullptr;
+  return nullptr;
 }
 
 }
