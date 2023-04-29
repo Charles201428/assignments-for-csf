@@ -31,6 +31,7 @@ struct ConnInfo{
     this->server = server;
   }
 };
+
 namespace {
 
 bool is_valid_tag(const Message &msg) {
@@ -52,10 +53,14 @@ bool has_no_newline(const std::string &data) {
 }
 
 bool check_validity_of_message(Message &msg) {
-  if (is_valid_tag(msg) && has_no_newline(msg.data)) {
-    return true;
+  if (!is_valid_tag(msg)) {
+    std::cout << "tag error";
+    return false;
+  } else if (!has_no_newline) {
+    std::cout << "new line shit";
+    return false;
   }
-  return false;
+  return true;
 }
 
 void handle_join_receiver(User *user, Connection *connection, Room *&chat_room, Server *srv, Message &join_message) {
@@ -142,7 +147,7 @@ void chat_with_sender(User *user, Connection *connection, Server *srv) {
       connection->send(error_msg);
     }
 
-    if (!check_validity_of_message(current_message) || !has_no_newline(current_message.data)) {
+    if (!check_validity_of_message(current_message)) {
       Message error_msg(TAG_ERR, "invalid");
       connection->send(error_msg);
     }
