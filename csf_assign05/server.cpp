@@ -26,200 +26,239 @@
 struct ConnInfo{
   Connection* new_connection;
   Server* server;
+
   ConnInfo(Connection * new_connection, Server *server) {
     this->new_connection = new_connection;
     this->server = server;
   }
+
+  ~ConnInfo(){
+    delete new_connection;
+  }
+};
+typedef struct ConnInfo ConnInfo;
+
+class TerminiationException: public std::exception {
+  protected: 
+    std::string excpmessage;
+  public:
+    TerminiationException(void) : excpmessage("") {}
+    TerminiationException(const std::string &message) : excpmessage(message) {}
+    const char *what(void) {return excpmessage.c_str();}
 };
 
 namespace {
 
-bool is_valid_tag(const Message &msg) {
-  return (msg.tag == TAG_DELIVERY) || (msg.tag == TAG_EMPTY) 
-      || (msg.tag == TAG_ERR) || (msg.tag == TAG_JOIN)
-      || (msg.tag == TAG_LEAVE) || (msg.tag == TAG_OK)
-      || (msg.tag == TAG_QUIT) || (msg.tag == TAG_RLOGIN)
-      || (msg.tag == TAG_SENDALL) || (msg.tag == TAG_SENDUSER)
-      || (msg.tag == TAG_SLOGIN);
-}
+void chat_with_sender(Connection* new_connection, Server* thisServer, std::string username);
 
-bool has_no_newline(const std::string &data) {
-  for (int i = 0; i < static_cast<int>(data.length()); i++) {
-    if (data.at(i) == '\n') {
-      return false;
-    }
-  }
-  return true;
-}
+void chat_with_receiver(Connection* new_connection, Server* server, User* new_user);
 
-bool check_validity_of_message(Message &msg) {
-  if (!is_valid_tag(msg)) {
-    std::cout << "tag error";
-    return false;
-  } else if (!has_no_newline) {
-    std::cout << "new line shit";
-    return false;
-  }
-  return true;
-}
+std::string rtrim(const std::string &s);
 
-void handle_join_receiver(User *user, Connection *connection, Room *&chat_room, Server *srv, Message &join_message) {
-  if (join_message.tag != TAG_JOIN) {
-    Message error_msg(TAG_ERR, "invalid join message");
-    connection->send(error_msg);
-  } else {
-    chat_room = srv->find_or_create_room(join_message.data);
-    chat_room->add_member(user);
-    Message login_success(TAG_OK, "joined room " + join_message.data);
-    connection->send(login_success);
-  }
-}
-
-void process_receiver_messages(User *user, Connection *connection, Room *chat_room) {
-  Message *current_msg;
-  bool keep_running = true;
-
-  while (keep_running) {
-    current_msg = user->mqueue.dequeue();
-    if ((current_msg != nullptr) && !(connection->send(*current_msg))) {
-      chat_room->remove_member(user);
-      keep_running = false;
-      return;
-    } else {
-      //delete current_msg;
-    }
-  }
-}
-
-void chat_with_receiver(User *user, Connection *connection, Server *srv) {
-  Message join_message;
-  connection->receive(join_message);
-  Room *chat_room = nullptr;
-
-  handle_join_receiver(user, connection, chat_room, srv, join_message);
-  process_receiver_messages(user, connection, chat_room);
-}
-
-
-
-
-void handle_join(Connection *connection, Message &current_message, Room *&chat_room, Server *srv) {
-  chat_room = srv->find_or_create_room(current_message.data);
-  Message login_success(TAG_OK, "joined room");
-  connection->send(login_success);
-}
-
-void handle_leave(Connection *connection, Room *&chat_room) {
-  if (chat_room == nullptr) {
-    Message error_msg(TAG_ERR, "not in a room yet");
-    connection->send(error_msg);
-  } else {
-    Message exit_room(TAG_OK, "left room");
-    connection->send(exit_room);
-    chat_room = nullptr;
-  }
-}
-
-void handle_quit(Connection *connection) {
-  Message quit_msg(TAG_OK, "quitting");
-  connection->send(quit_msg);
-}
-
-void handle_sendall(Connection *connection, Room *chat_room, User *user, Message &current_message) {
-  if (chat_room == nullptr) {
-    Message error_msg(TAG_ERR, "not in a room yet");
-    connection->send(error_msg);
-  } else {
-    chat_room->broadcast_message(user->username, current_message.data);
-    Message sent_msg(TAG_OK, "msg sent");
-    connection->send(sent_msg);
-  }
-}
-
-void chat_with_sender(User *user, Connection *connection, Server *srv) {
-  Room *chat_room = nullptr;
-  Message current_message;
-  //bool keep_running = true;
-
-  while (1) {
-    if (!connection->receive(current_message)) {
-      Message error_msg(TAG_ERR, "not received");
-      connection->send(error_msg);
-    }
-
-    if (!check_validity_of_message(current_message)) {
-      Message error_msg(TAG_ERR, "invalid");
-      connection->send(error_msg);
-    }
-    else if (current_message.tag == TAG_JOIN) {
-      handle_join(connection, current_message, chat_room, srv);
-    }
-    else if (current_message.tag == TAG_LEAVE) {
-      handle_leave(connection, chat_room);
-    }
-    else if (current_message.tag == TAG_QUIT) {
-      handle_quit(connection);
-      return;
-    }
-    else if (current_message.tag == TAG_SENDALL) {
-      handle_sendall(connection, chat_room, user, current_message);
-    }
-    else {
-      Message error_msg(TAG_ERR, "unidentified input");
-      connection->send(error_msg);
-    }
-  }
-}
-
-
-
-
-
-void *worker(void *args) {
+void *worker(void *arg) {
   pthread_detach(pthread_self());
+  ConnInfo* info = static_cast<ConnInfo *>(arg);
+  Server* thisServer = info->server;
+  Connection* new_connection = info->new_connection;
+  Message received;
+  User* new_user = new User("");
 
-  // Extract argument data
-  ConnInfo *input = static_cast<ConnInfo *>(args);
-  Connection *connection = input->new_connection;
-  Server *srv = input->server;
-  //delete input;
+  try {
+    new_connection->receive(received);
+    checkConnectionStatus(new_connection);
 
-  Message login_message;
-  connection->receive(login_message);
-  User participant(login_message.data);
-  if (login_message.tag == TAG_RLOGIN) {
-    participant.receiver = true;
-  } else if (login_message.tag == TAG_SLOGIN) {
-    participant.receiver = false;
-  } else {
-    Message error_msg(TAG_ERR, "incorrect login message");
-    connection->send(error_msg);
-    //delete connection;
+    if (new_connection->get_last_result() == Connection::INVALID_MSG) {
+      Message error_message = {TAG_ERR,"wrong format"};
+      new_connection->send(error_message);
+      checkConnectionStatus(new_connection);
+    }
+
+    // if (processUsernameFormat(received)) {
+    //   new_user->username = rtrim(received.data);
+    //   sentOKMessage(new_connection);
+    // } else {
+    //   sentErrorMessage(new_connection, "invalid username format");
+    //   throw TerminiationException();
+    // }
+
+
+    if (inputMessage.data.find("\n") == std::string::npos) {
+        Message error_message = {TAG_ERR,"wrong format"};
+        new_connection->send(error_message);
+        checkConnectionStatus(new_connection);
+        throw TerminiationException();
+    } else {
+        if (inputMessage.data.length() <= 1 || (rtrim(inputMessage.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
+        Message error_message = {TAG_ERR,"wrong tag"};
+        new_connection->send(error_message);
+        checkConnectionStatus(new_connection);
+        throw TerminiationException();
+        } else{
+            new_user->username = rtrim(received.data);
+            Message ok_message = {TAG_OK,""};
+            new_connection->send(ok_message);
+            checkConnectionStatus(new_connection);
+        }
+    }
+
+    if (received.tag == TAG_SLOGIN) {
+      chat_with_sender(new_connection, thisServer, new_user->username);
+    } else if (received.tag == TAG_RLOGIN) {
+      chat_with_receiver(new_connection, thisServer, new_user);
+    } else {
+      sentErrorMessage(new_connection, "invalid login tag");
+      throw TerminiationException();
+    }
+  } catch (TerminiationException& ex) {
+    delete new_user;
     return nullptr;
   }
-  Message login_success(TAG_OK, "successfully logged in");
-  connection->send(login_success);
+  delete new_user;
+return nullptr;
+}
 
-  if (participant.receiver) {
-    chat_with_receiver(&participant, connection, srv); 
-  } else {
-    chat_with_sender(&participant, connection, srv);
+}
+
+
+// void checkConnectionStatus(Connection* new_connection) {
+//   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+//     throw TerminiationException();
+//   }
+// }
+
+// void sentOKMessage(Connection* new_connection) {
+//   // use send
+//   Message ok_message = {TAG_OK,""};
+//   new_connection->send(ok_message);
+//   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+//     throw TerminiationException();
+//   }
+// }
+
+// void sentErrorMessage(Connection* new_connection, std::string errorMessage) {
+//   Message error_message = {TAG_ERR,errorMessage};
+//   new_connection->send(error_message);
+//   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+//     throw TerminiationException();
+//   }
+// }
+
+
+void chat_with_sender(Connection* new_connection, Server* thisServer, std::string username) {
+  Message response;
+  Room* current_room = nullptr;
+  while (true) {
+    new_connection->receive(response);
+    if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+    throw TerminiationException();
+    }
+
+    if (new_connection->get_last_result() == Connection::INVALID_MSG) {
+      Message error_message = {TAG_ERR,"wrong message"};
+      new_connection->send(error_message);
+      checkConnectionStatus(new_connection);
+    } else {
+      if (response.tag == TAG_JOIN) {
+        if (processMessageFormat(response)) {
+          current_room = thisServer->find_or_create_room(rtrim(response.data));
+            Message ok_message = {TAG_OK,""};
+            new_connection->send(ok_message);
+            checkConnectionStatus(new_connection);
+        } else {
+            Message error_message = {TAG_ERR,"wrong room format"};
+            new_connection->send(error_message);
+            checkConnectionStatus(new_connection);
+        }
+      }
+      else if (response.tag == TAG_LEAVE) {
+        if (current_room == nullptr) {
+          Message error_message = {TAG_ERR,"wrong"};
+          new_connection->send(error_message);
+          checkConnectionStatus(new_connection);
+
+        } else {
+          current_room = nullptr;
+          Message ok_message = {TAG_OK,""};
+          new_connection->send(ok_message);
+          checkConnectionStatus(new_connection);
+        }
+      } else if (response.tag == TAG_SENDALL) {
+        if (current_room == nullptr) {
+            Message error_message = {TAG_ERR,"don't join a room"};
+            new_connection->send(error_message);
+            checkConnectionStatus(new_connection);
+        } else {
+          if (!processMessageFormat(response)) {
+            Message error_message = {TAG_ERR,"wrong formate"};
+            new_connection->send(error_message);
+            checkConnectionStatus(new_connection);
+          } else {
+            current_room->broadcast_message(username, rtrim(response.data));
+            Message ok_message = {TAG_OK,""};
+            new_connection->send(ok_message);
+            checkConnectionStatus(new_connection);
+          }
+        }
+      } else if (response.tag == TAG_QUIT) {
+        Message ok_message = {TAG_OK,""};
+        new_connection->send(ok_message);
+        checkConnectionStatus(new_connection);
+        throw TerminiationException();
+      } else {
+          Message error_message = {TAG_ERR,"wrong tag pops up"};
+          new_connection->send(error_message);
+          checkConnectionStatus(new_connection);
+      }
+    }
   }
-
-  //delete connection;
-  return nullptr;
 }
 
 
 
-
+void chat_with_receiver(Connection* new_connection, Server* server, User* new_user) {
+  Message join_message;
+  if (!new_connection->receive(join_message)) {
+    Message error_message = {TAG_ERR,"something went wrong"};
+    new_connection->send(error_message);
+    checkConnectionStatus(new_connection);
+    throw TerminiationException();
+  }
+  if (join_message.tag != TAG_JOIN || !processMessageFormat(join_message)) {
+    Message error_message = {TAG_ERR,"wrong format"};
+    new_connection->send(error_message);
+    checkConnectionStatus(new_connection);
+    throw TerminiationException();
+  }
+  Room *room = server->find_or_create_room(rtrim(join_message.data));
+  //add user to room
+  room->add_member(new_user);
+  new_connection->send(Message(TAG_OK, ""));
+  if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+    room->remove_member(new_user);
+    throw TerminiationException();
+  }
+  while (true) {
+    Message* response = new_user->mqueue.dequeue(); 
+    if (response != nullptr) {
+      new_connection->send(*response);
+      delete response;
+    }
+    if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
+      break;
+    }
+  }
+  room->remove_member(new_user);
 }
+
+std::string rtrim(const std::string &s) {
+  size_t end = s.find_last_not_of("\n\r\t\f\v");
+  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+ 
 
 ////////////////////////////////////////////////////////////////////////
 // Server member function implementation
 ////////////////////////////////////////////////////////////////////////
-
-
 
 Server::Server(int port)
   : m_port(port)
@@ -256,12 +295,8 @@ Room *Server::find_or_create_room(const std::string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
   Guard g(m_lock);
-  for (RoomMap::iterator it = m_rooms.begin(); it != m_rooms.end(); it++) {
-    if (it->first == room_name) {
-      return it->second;
-    }
+  if (m_rooms.find(room_name) == m_rooms.end()) {
+    m_rooms[room_name] = new Room(room_name);
   }
-  Room * updatedRoom = new Room(room_name);
-  m_rooms.insert({room_name,  updatedRoom});
-  return  updatedRoom;
+  return m_rooms[room_name];
 }
