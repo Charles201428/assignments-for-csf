@@ -26,13 +26,6 @@
 struct ConnInfo{
   Connection* new_connection;
   Server* server;
-  ConnInfo(Connection * new_connection, Server *server) {
-    this->new_connection = new_connection;
-    this->server = server;
-  }
-  ~ConnInfo(){
-    delete new_connection;
-  }
 };
 namespace {
 
