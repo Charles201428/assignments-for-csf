@@ -13,6 +13,9 @@
 #include "guard.h"
 #include "server.h"
 
+using std::string;
+string alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
 ////////////////////////////////////////////////////////////////////////
 // Server implementation data types
 ////////////////////////////////////////////////////////////////////////
@@ -40,23 +43,23 @@ typedef struct ConnInfo ConnInfo;
 
 class ServerException: public std::exception {
   protected: 
-    std::string excpmessage;
+    string excpmessage;
   public:
     ServerException(void) : excpmessage("") {}
-    ServerException(const std::string &message) : excpmessage(message) {}
+    ServerException(const string &message) : excpmessage(message) {}
     const char *what(void) {return excpmessage.c_str();}
 };
 
 namespace {
 
 
-std::string right_trim(const std::string &s) {
+string right_trim(const string &s) {
   size_t end = s.find_last_not_of("\n\r\t\f\v");
-  return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+  return (end == string::npos) ? "" : s.substr(0, end + 1);
 }
 
 
-void chat_with_sender(Connection* new_connection, Server* server, std::string username) {
+void chat_with_sender(Connection* new_connection, Server* server, string username) {
   Message curr_mes;
   Room* current_room = nullptr;
   while (true) {
@@ -73,7 +76,7 @@ void chat_with_sender(Connection* new_connection, Server* server, std::string us
   }
     } else {
       if (curr_mes.tag == TAG_JOIN) {
-        if (curr_mes.data.find("\n") != std::string::npos) {
+        if (curr_mes.data.find("\n") != string::npos) {
           current_room = server->find_or_create_room(right_trim(curr_mes.data));
             Message ok_message = {TAG_OK,""};
             new_connection->send(ok_message);
@@ -112,7 +115,7 @@ void chat_with_sender(Connection* new_connection, Server* server, std::string us
               throw ServerException();
             }
         } else {
-          if (curr_mes.data.find("\n") == std::string::npos) {
+          if (curr_mes.data.find("\n") == string::npos) {
             Message error_message = {TAG_ERR,"wrong formate"};
             new_connection->send(error_message);
             if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -157,7 +160,7 @@ void chat_with_receiver(Connection* new_connection, Server* server, User* new_us
   }
     throw ServerException();
   }
-  if (join_meg.tag != TAG_JOIN || join_meg.data.find("\n") == std::string::npos) {
+  if (join_meg.tag != TAG_JOIN || join_meg.data.find("\n") == string::npos) {
     Message error_message = {TAG_ERR,"wrong format"};
     new_connection->send(error_message);
   if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -209,7 +212,7 @@ void *worker(void *arg) {
       }
     }
 
-    if (login_mes.data.find("\n") == std::string::npos) {
+    if (login_mes.data.find("\n") == string::npos) {
         Message error_message = {TAG_ERR,"wrong format"};
         new_connection->send(error_message);
         if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -217,7 +220,7 @@ void *worker(void *arg) {
         }
         throw ServerException();
     } else {
-        if (login_mes.data.length() <= 1 || (right_trim(login_mes.data).find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890") != std::string::npos)) {
+        if (login_mes.data.length() <= 1 || (right_trim(login_mes.data).find_first_not_of(alphabet) != string::npos)) {
         Message error_message = {TAG_ERR,"wrong tag"};
         new_connection->send(error_message);
         if (new_connection->get_last_result() == Connection::EOF_OR_ERROR) {
@@ -297,7 +300,7 @@ void Server::handle_client_requests() {
   }
 }
 
-Room *Server::find_or_create_room(const std::string &room_name) {
+Room *Server::find_or_create_room(const string &room_name) {
   // TODO: return a pointer to the unique Room object representing
   //       the named chat room, creating a new one if necessary
   Guard g(m_lock);
