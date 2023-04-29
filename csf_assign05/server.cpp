@@ -26,6 +26,10 @@
 struct ConnInfo{
   Connection* new_connection;
   Server* server;
+  ConnInfo(Connection * new_connection, Server *server) {
+    this->new_connection = new_connection;
+    this->server = server;
+  }
 };
 namespace {
 
@@ -75,8 +79,9 @@ void process_receiver_messages(User *user, Connection *connection, Room *chat_ro
     if ((current_msg != nullptr) && !(connection->send(*current_msg))) {
       chat_room->remove_member(user);
       keep_running = false;
+      return;
     } else {
-      delete current_msg;
+      //delete current_msg;
     }
   }
 }
@@ -129,15 +134,15 @@ void handle_sendall(Connection *connection, Room *chat_room, User *user, Message
 void chat_with_sender(User *user, Connection *connection, Server *srv) {
   Room *chat_room = nullptr;
   Message current_message;
-  bool keep_running = true;
+  //bool keep_running = true;
 
-  while (keep_running) {
+  while (1) {
     if (!connection->receive(current_message)) {
       Message error_msg(TAG_ERR, "not received");
       connection->send(error_msg);
     }
 
-    if (!check_validity_of_message(current_message)) {
+    if (!check_validity_of_message(current_message) || !has_no_newline(current_message.data)) {
       Message error_msg(TAG_ERR, "invalid");
       connection->send(error_msg);
     }
@@ -149,7 +154,7 @@ void chat_with_sender(User *user, Connection *connection, Server *srv) {
     }
     else if (current_message.tag == TAG_QUIT) {
       handle_quit(connection);
-      keep_running = false;
+      return;
     }
     else if (current_message.tag == TAG_SENDALL) {
       handle_sendall(connection, chat_room, user, current_message);
@@ -172,7 +177,7 @@ void *worker(void *args) {
   ConnInfo *input = static_cast<ConnInfo *>(args);
   Connection *connection = input->new_connection;
   Server *srv = input->server;
-  delete input;
+  //delete input;
 
   Message login_message;
   connection->receive(login_message);
@@ -184,7 +189,7 @@ void *worker(void *args) {
   } else {
     Message error_msg(TAG_ERR, "incorrect login message");
     connection->send(error_msg);
-    delete connection;
+    //delete connection;
     return nullptr;
   }
   Message login_success(TAG_OK, "successfully logged in");
@@ -196,7 +201,7 @@ void *worker(void *args) {
     chat_with_sender(&participant, connection, srv);
   }
 
-  delete connection;
+  //delete connection;
   return nullptr;
 }
 
