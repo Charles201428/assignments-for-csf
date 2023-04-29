@@ -270,6 +270,9 @@ Server::Server(int port)
 }
 
 Server::~Server() {
+  for (RoomMap::iterator it = m_rooms.begin(); it != m_rooms.end(); it++) {
+    delete it->second;
+  }
   pthread_mutex_destroy(&m_lock);
 }
 
